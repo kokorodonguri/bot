@@ -11,10 +11,10 @@ pip install aiohttp
 pip install dotenv
 ```
 ```
-git clone https://github.com/kokorodonguri/963bot.git
+git clone https://github.com/kokorodonguri/bot.git
 ```
 起動
 ```
-cd 964bot
 python bot.py
 ```
+
