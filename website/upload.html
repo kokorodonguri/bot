@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファイル共有 - GigaFile風アップローダー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #999;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .ip-info {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 30px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .ip-info strong {
+            color: #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .upload-button:hover {
+            background: #764ba2;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .upload-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .upload-result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .upload-result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .download-url {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .download-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .download-button:hover {
+            background: #764ba2;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            display: none;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f9f9f9;
+        }
+
+        .preview-header {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .preview-body {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .preview-text {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .preview-unavailable {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-size: 12px;
+        }
+
+        .preview-video {
+            width: 100%;
+            max-height: 300px;
+        }
+
+        .preview-audio {
+            width: 100%;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 ファイル共有</h1>
+        <p class="subtitle">最大 5GB までのファイルをアップロードして共有できます</p>
+        <!-- IP display removed -->
+
+        <div id="errorContainer"></div>
+        <div id="successContainer"></div>
+
+        <div class="section">
+            <h2>アップロード</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">ファイルを選んでファイルを共有</div>
+                <button class="upload-button" id="selectButton">ファイルを選択</button>
+                <input type="file" id="fileInput">
+            </div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            <div class="upload-result" id="uploadResult"></div>
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-header">
+                    プレビュー
+                    <button class="preview-close" onclick="closePreview()">✕</button>
+                </div>
+                <div class="preview-body" id="previewBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectButton = document.getElementById('selectButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const uploadResult = document.getElementById('uploadResult');
+        const errorContainer = document.getElementById('errorContainer');
+        const successContainer = document.getElementById('successContainer');
+
+        // Event listeners for file selection
+        selectButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop events
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Show preview
+            showPreview(file);
+
+            uploadFile(file);
+            fileInput.value = '';
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            progressContainer.style.display = 'block';
+            uploadResult.style.display = 'none';
+            uploadResult.innerHTML = '';
+
+            try {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressFill.style.width = percent + '%';
+                        progressText.textContent = percent + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        showSuccess(`ファイルをアップロードしました: ${file.name}`);
+                        const url = response.url;
+                        const discordUrl = url + (url.includes('?') ? '&' : '?') + 'preview=1';
+                        showUploadResult('success', `<strong>${file.name}</strong> がアップロードされました。<br><br>
+                            <div class="download-url">
+                                <span>${url}</span>
+                                <button class="download-button" onclick="copyUrlToClipboard(this)">コピー</button>
+                            </div>
+                            </div>`);
+                        // Store URL for copying on the button inside the upload result container
+                        const btns = uploadResult.querySelectorAll('.download-button');
+                        if (btns[0]) btns[0].dataset.url = url;
+                        if (btns[1]) btns[1].dataset.url = discordUrl;
+                        progressContainer.style.display = 'none';
+                    } else {
+                        const response = JSON.parse(xhr.responseText);
+                        showError(`アップロード失敗: ${response.error || xhr.status}`);
+                        showUploadResult('error', `エラーが発生しました: ${response.error}`);
+                        progressContainer.style.display = 'none';
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    showError('ネットワークエラーが発生しました');
+                    showUploadResult('error', 'ネットワークエラーが発生しました');
+                    progressContainer.style.display = 'none';
+                });
+
+                xhr.open('POST', API_BASE + '/upload');
+                xhr.send(formData);
+            } catch (error) {
+                showError(`エラー: ${error.message}`);
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function showUploadResult(type, message) {
+            uploadResult.className = `upload-result ${type}`;
+            uploadResult.innerHTML = message;
+            uploadResult.style.display = 'block';
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            successContainer.innerHTML = `<div class="success-message">${message}</div>`;
+            setTimeout(() => {
+                successContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccess('リンクをコピーしました');
+            }).catch(() => {
+                alert('コピーに失敗しました');
+            });
+        }
+
+        function copyUrlToClipboard(button) {
+            const url = button.dataset.url || button.previousElementSibling.textContent;
+            if (!url) return;
+
+            // Try modern Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = 'コピー済み';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#667eea';
+                    }, 2000);
+                    showSuccess('リンクをコピーしました');
+                }).catch(() => {
+                    // Fallback to legacy execCommand method
+                    legacyCopy(url, button);
+                });
+            } else {
+                legacyCopy(url, button);
+            }
+        }
+
+        function legacyCopy(text, button) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                const ok = document.execCommand('copy');
+                if (ok) {
+                    const originalText = button.textContent;
+                    button.textContent = 'コピー済み';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#667eea';
+                    }, 2000);
+                    showSuccess('リンクをコピーしました');
+                } else {
+                    alert('コピーに失敗しました');
+                }
+            } catch (e) {
+                alert('コピーに失敗しました');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function closePreview() {
+            document.getElementById('previewContainer').style.display = 'none';
+        }
+
+        function showPreview(file) {
+            const previewContainer = document.getElementById('previewContainer');
+            const previewBody = document.getElementById('previewBody');
+            const fileType = file.type;
+            const fileName = file.name;
+
+            previewBody.innerHTML = '';
+
+            // Image preview
+            if (fileType.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+                    previewBody.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+                previewContainer.style.display = 'block';
+                return;
+            }
+
+            // Video preview (MP4, WebM, Ogg)
+            if (fileType.startsWith('video/') || ['mp4', 'webm', 'ogv'].some(ext => fileName.toLowerCase().endsWith(ext))) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const video = document.createElement('video');
+                    video.src = e.target.result;
+                    video.className = 'preview-video';
+                    video.controls = true;
+                    previewBody.appendChild(video);
+                };
+                reader.readAsDataURL(file);
+                previewContainer.style.display = 'block';
+                return;
+            }
+
+            // Audio preview (MP3, WAV, OGG, etc.)
+            if (fileType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].some(ext => fileName.toLowerCase().endsWith(ext))) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const audio = document.createElement('audio');
+                    audio.src = e.target.result;
+                    audio.className = 'preview-audio';
+                    audio.controls = true;
+                    previewBody.appendChild(audio);
+                };
+                reader.readAsDataURL(file);
+                previewContainer.style.display = 'block';
+                return;
+            }
+
+            // Text preview
+            if (fileType.startsWith('text/') || fileType === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const pre = document.createElement('div');
+                    pre.className = 'preview-text';
+                    pre.textContent = e.target.result.substring(0, 5000);
+                    if (e.target.result.length > 5000) {
+                        pre.textContent += '\n\n... (残り ' + (e.target.result.length - 5000) + ' 文字は省略されています)';
+                    }
+                    previewBody.appendChild(pre);
+                };
+                reader.readAsText(file);
+                previewContainer.style.display = 'block';
+                return;
+            }
+
+            // PDF preview (embed)
+            if (fileType === 'application/pdf') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const embed = document.createElement('iframe');
+                    embed.src = e.target.result;
+                    embed.style.width = '100%';
+                    embed.style.height = '300px';
+                    embed.style.border = 'none';
+                    previewBody.appendChild(embed);
+                };
+                reader.readAsDataURL(file);
+                previewContainer.style.display = 'block';
+                return;
+            }
+
+            // No preview available
+            const notAvailable = document.createElement('div');
+            notAvailable.className = 'preview-unavailable';
+            notAvailable.textContent = `このファイル形式 (${fileType || 'unknown'}) はプレビューできません`;
+            previewBody.appendChild(notAvailable);
+            previewContainer.style.display = 'block';
+        }
+
+        // IP retrieval removed (no IP display)
+    </script>
+</body>
+</html>

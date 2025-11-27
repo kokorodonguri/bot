@@ -1,0 +1,7 @@
+/.venv
+token.txt
+.env
+file_index.json
+/uploads/
+__pycache__/
+*.pyc
