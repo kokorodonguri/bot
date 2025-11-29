@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta property="og:title" content="{{TITLE}}" />
+        <meta property="og:description" content="{{DESCRIPTION}}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="{{URL}}" />
+        <meta property="og:image" content="{{IMAGE_URL}}" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <title>{{TITLE}} - プレビュー</title>
+        <link rel="stylesheet" href="/assets/download.css" />
+    </head>
+    <body data-token="{{TOKEN}}">
+        <a class="back-link" href="/">⤴ アップロードへ</a>
+        <div class="clouds" id="cloudLayer"></div>
+        <div class="page-wrapper">
+            <div class="card" id="fileView" hidden>
+                <h1>📥 ファイルプレビュー</h1>
+                <p class="filename" id="fileName">{{TITLE}}</p>
+                <div class="meta">
+                    <div class="meta-item">
+                        <span>ファイルサイズ</span>
+                        <strong id="fileSize">-</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>アップロード日時</span>
+                        <strong id="fileUploaded">-</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>MIME タイプ</span>
+                        <strong id="fileMime">-</strong>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a
+                        class="download-button"
+                        id="downloadBtn"
+                        href="#"
+                        rel="noopener"
+                    >
+                        ⬇ ダウンロード
+                    </a>
+                    <button class="copy-button" id="copyBtn" type="button">
+                        リンクをコピー
+                    </button>
+                </div>
+                <div class="preview-section" id="previewSection" hidden>
+                    <div class="preview-title">プレビュー</div>
+                    <div id="previewBody" class="preview-body"></div>
+                    <div class="preview-note" id="previewNote" hidden></div>
+                </div>
+            </div>
+            <div class="status-card" id="loadingView">
+                ファイル情報を読み込んでいます...
+            </div>
+            <div class="status-card error" id="errorView" hidden></div>
+        </div>
+        <script>
+            window.__FILE_TOKEN__ = "{{TOKEN}}";
+        </script>
+        <script src="/assets/download.js" defer></script>
+    </body>
+</html>

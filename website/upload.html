@@ -25,7 +25,8 @@
                 justify-content: center;
                 align-items: center;
                 position: relative;
-                overflow: hidden;
+                overflow-x: hidden;
+                overflow-y: auto;
             }
 
             /* 雲の全体コンテナ */
@@ -52,7 +53,7 @@
                 filter: blur(0.7px);
                 opacity: 0.85;
                 --scale: 1;
-                animation: cloudMove 50s linear infinite;
+                transform: scale(var(--scale));
             }
 
             /* 雲の形（モコモコ） */
@@ -76,23 +77,7 @@
                 left: 60px;
             }
 
-            /* 雲が横に動くアニメーション */
-            @keyframes cloudMove {
-                0% {
-                    transform: translateX(120vw) scale(var(--scale));
-                    opacity: 0;
-                }
-                10% {       
-                    opacity: 0.85;
-                }
-                90% {
-                    opacity: 0.85;
-                }
-                100% {
-                    transform: translateX(-140vw) scale(var(--scale));
-                    opacity: 0;
-                }
-            }
+            /* 雲アニメーションは停止（ランダム配置のみ） */
 
             .container {
                 background: white;
@@ -356,6 +341,22 @@
                 width: 100%;
                 margin: 10px 0;
             }
+
+            .preview-play-button {
+                background: #667eea;
+                color: #fff;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: background 0.2s ease;
+            }
+
+            .preview-play-button:hover {
+                background: #764ba2;
+            }
         </style>
     </head>
     <body>
@@ -408,28 +409,21 @@
             if (cloudLayer) {
                 const CLOUD_COUNT = 7;
 
-                const randomizeCloud = (cloud, isInitial = false) => {
+                const randomizeCloud = (cloud) => {
                     const scale = (0.6 + Math.random() * 0.9).toFixed(2);
                     const top = 10 + Math.random() * 130;
-                    const duration = 35 + Math.random() * 25;
+                    const left = -10 + Math.random() * 120;
 
                     cloud.style.setProperty("--scale", scale);
                     cloud.style.top = `${top}px`;
-                    cloud.style.animationDuration = `${duration}s`;
-
-                    if (isInitial) {
-                        const delay = -Math.random() * duration;
-                        cloud.style.animationDelay = `${delay}s`;
-                    }
+                    cloud.style.left = `${left}%`;
+                    cloud.style.transform = `scale(${scale})`;
                 };
 
                 Array.from({ length: CLOUD_COUNT }).forEach(() => {
                     const cloud = document.createElement("div");
                     cloud.className = "cloud";
-                    randomizeCloud(cloud, true);
-                    cloud.addEventListener("animationiteration", () =>
-                        randomizeCloud(cloud),
-                    );
+                    randomizeCloud(cloud);
                     cloudLayer.appendChild(cloud);
                 });
             }
@@ -708,7 +702,26 @@
                         audio.src = e.target.result;
                         audio.className = "preview-audio";
                         audio.controls = true;
+
+                        const playButton = document.createElement("button");
+                        playButton.type = "button";
+                        playButton.className = "preview-play-button";
+                        playButton.textContent = "▶ 再生";
+                        playButton.addEventListener("click", () => {
+                            if (audio.paused) {
+                                audio.play();
+                                playButton.textContent = "⏸ 停止";
+                            } else {
+                                audio.pause();
+                                playButton.textContent = "▶ 再生";
+                            }
+                        });
+                        audio.addEventListener("ended", () => {
+                            playButton.textContent = "▶ 再生";
+                        });
+
                         previewBody.appendChild(audio);
+                        previewBody.appendChild(playButton);
                     };
                     reader.readAsDataURL(file);
                     previewContainer.style.display = "block";
