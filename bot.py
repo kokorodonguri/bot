@@ -7,7 +7,7 @@ import pathlib
 import time
 import uuid
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import aiohttp
 import discord
@@ -27,11 +27,13 @@ INDEX_PATH = ROOT / "file_index.json"
 UPLOAD_PAGE = WEBSITE_DIR / "upload.html"
 DOWNLOAD_PAGE = WEBSITE_DIR / "download.html"
 PREVIEW_TEMPLATE = WEBSITE_DIR / "preview.html"
+LISTING_PAGE = WEBSITE_DIR / "listing.html"
 ASSETS_DIR = WEBSITE_DIR / "assets"
 
 # Server bind settings (can be overridden with env)
 HTTP_HOST = os.getenv("HTTP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))
+HTTP_LISTING_PORT = int(os.getenv("HTTP_LISTING_PORT", "8004"))
 EXTERNAL_URL = os.getenv(
     "EXTERNAL_URL"
 )  # optional public base URL (e.g. https://example.com)
@@ -162,6 +164,11 @@ def public_base_url() -> str:
     if EXTERNAL_URL:
         return EXTERNAL_URL.rstrip("/")
     return f"http://{HTTP_HOST}:{HTTP_PORT}"
+
+
+def file_page_url(token: str) -> str:
+    base = public_base_url().rstrip("/")
+    return f"{base}/files/{token}"
 
 
 def client_ip_from_request(request: web.Request) -> str:
@@ -356,6 +363,49 @@ def create_app() -> web.Application:
     return app
 
 
+def create_listing_app() -> web.Application:
+    app = web.Application(middlewares=[error_middleware])
+
+    async def handle_root(request: web.Request):
+        if LISTING_PAGE.exists():
+            return web.FileResponse(
+                LISTING_PAGE, headers={"Content-Type": "text/html; charset=utf-8"}
+            )
+        return web.Response(text="listing page not found", status=404)
+
+    async def handle_listing(request: web.Request):
+        index = load_index()
+        records: List[Dict[str, object]] = []
+        for token, meta in index.items():
+            timestamp = meta.get("timestamp") or 0
+            filename = meta.get("filename", "file")
+            mime_type, _ = mimetypes.guess_type(filename)
+            file_type = mime_type or "不明"
+            records.append(
+                {
+                    "filename": filename,
+                    "size": meta.get("size", 0),
+                    "size_readable": human_readable_size(meta.get("size", 0)),
+                    "uploaded_at": format_timestamp(timestamp),
+                    "file_type": file_type,
+                    "url": file_page_url(token),
+                    "timestamp": timestamp,
+                    "token": token,
+                }
+            )
+
+        records.sort(key=lambda item: item["timestamp"], reverse=True)
+        for record in records:
+            record.pop("timestamp", None)
+        return web.json_response(records)
+
+    app.router.add_get("/", handle_root)
+    app.router.add_get("/api/files", handle_listing)
+    if ASSETS_DIR.exists():
+        app.router.add_static("/assets", str(ASSETS_DIR))
+    return app
+
+
 # --- Discord bot logic (GitHub preview + verify) ---
 
 
@@ -377,6 +427,17 @@ async def on_ready() -> None:
         bot.web_runner = runner
         print(f"HTTP server started on {HTTP_HOST}:{HTTP_PORT}")
 
+    if not hasattr(bot, "listing_runner"):
+        listing_app = create_listing_app()
+        listing_runner = web.AppRunner(listing_app)
+        await listing_runner.setup()
+        listing_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LISTING_PORT)
+        await listing_site.start()
+        bot.listing_runner = listing_runner
+        print(
+            f"Listing server started on {HTTP_HOST}:{HTTP_LISTING_PORT}"
+        )
+
     try:
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s)")
@@ -390,6 +451,8 @@ async def on_close() -> None:
         await bot.session.close()
     if hasattr(bot, "web_runner"):
         await bot.web_runner.cleanup()
+    if hasattr(bot, "listing_runner"):
+        await bot.listing_runner.cleanup()
 
 
 @bot.event

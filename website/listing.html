@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>共有ファイル一覧</title>
+        <link rel="stylesheet" href="/assets/listing.css" />
+    </head>
+    <body>
+        <div class="page">
+            <header class="hero">
+                <div class="hero__content">
+                    <p class="eyebrow">File Share Dashboard</p>
+                    <h1>共有ファイル一覧</h1>
+                    <p class="lead">
+                        `uploads/` ディレクトリに保存されたファイルを、ブラウザからすばやく検索・確認できます。
+                    </p>
+                </div>
+                <div class="hero__stats">
+                    <div class="stat">
+                        <span class="stat__label">公開ファイル数</span>
+                        <span class="stat__value" data-count>0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat__label">最終更新</span>
+                        <span class="stat__value" data-updated>--</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="panel">
+                <div class="panel__header">
+                    <div class="toolbar">
+                        <label class="search">
+                            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                <path
+                                    d="M10.5 3a7.5 7.5 0 0 1 5.901 12.123l4.239 4.238-1.414 1.415-4.238-4.239A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 4.366 8.892l.174-.215.215-.174A5.5 5.5 0 0 0 10.5 5z"
+                                    fill="currentColor"
+                                />
+                            </svg>
+                            <input
+                                type="search"
+                                placeholder="ファイル名で検索"
+                                aria-label="ファイル名で検索"
+                                data-search
+                            />
+                        </label>
+                        <button class="refresh" type="button" data-refresh>
+                            最新の情報を取得
+                        </button>
+                    </div>
+                    <p class="meta">
+                        このリストは <span data-host></span> 上で公開されています。各行のリンクからブラウザで直接開けます。
+                    </p>
+                </div>
+
+                <div class="status" data-status>読み込み中...</div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ファイル名</th>
+                                <th>サイズ</th>
+                                <th>アップロード日時</th>
+                                <th>ファイルタイプ</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody data-table-body>
+                            <tr>
+                                <td colspan="5" class="placeholder">読み込み中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty" data-empty hidden>
+                    <h2>アップロードされたファイルはありません</h2>
+                    <p>ファイルをアップロードすると、ここに自動的に表示されます。</p>
+                </div>
+            </section>
+        </div>
+
+        <script type="module" src="/assets/listing.js"></script>
+    </body>
+</html>
