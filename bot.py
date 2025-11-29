@@ -1,14 +1,17 @@
 import asyncio
+import html
 import json
+import mimetypes
 import os
 import pathlib
 import time
 import uuid
+from datetime import datetime
 from typing import Dict, Optional
 
 import aiohttp
-from aiohttp import web
 import discord
+from aiohttp import web
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -17,19 +20,49 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ROOT = pathlib.Path(__file__).parent
+WEBSITE_DIR = ROOT / "website"
 UPLOAD_DIR = ROOT / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_PATH = ROOT / "file_index.json"
+UPLOAD_PAGE = WEBSITE_DIR / "upload.html"
+DOWNLOAD_PAGE = WEBSITE_DIR / "download.html"
+PREVIEW_TEMPLATE = WEBSITE_DIR / "preview.html"
+ASSETS_DIR = WEBSITE_DIR / "assets"
 
 # Server bind settings (can be overridden with env)
 HTTP_HOST = os.getenv("HTTP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))
-EXTERNAL_URL = os.getenv("EXTERNAL_URL")  # optional public base URL (e.g. https://example.com)
+EXTERNAL_URL = os.getenv(
+    "EXTERNAL_URL"
+)  # optional public base URL (e.g. https://example.com)
 
 # Discord/gihub constants
 GITHUB_API_URL = "https://api.github.com/repos"
 GITHUB_HEADERS = {"Accept": "application/vnd.github.v3.raw"}
-GITHUB_URL_PATTERN = __import__("re").compile(r'https://github.com/([\w\-]+)/([\w\-]+)(?:/|$)')
+GITHUB_URL_PATTERN = __import__("re").compile(
+    r"https://github.com/([\w\-]+)/([\w\-]+)(?:/|$)"
+)
+FILE_URL_PATTERN = __import__("re").compile(r"(https?://[^\s/]+)/files/([0-9a-fA-F]+)")
+
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".mov", ".mkv", ".avi"}
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac"}
+TEXT_EXTENSIONS = {
+    ".txt",
+    ".md",
+    ".log",
+    ".json",
+    ".csv",
+    ".py",
+    ".js",
+    ".ts",
+    ".html",
+    ".css",
+    ".yaml",
+    ".yml",
+    ".ini",
+    ".cfg",
+}
 
 # Create bot
 intents = discord.Intents.default()
@@ -53,7 +86,66 @@ def load_index() -> Dict[str, Dict]:
 
 
 def save_index(index: Dict[str, Dict]) -> None:
-    INDEX_PATH.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    INDEX_PATH.write_text(
+        json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def human_readable_size(size: int) -> str:
+    size = float(size or 0)
+    units = ["B", "KB", "MB", "GB", "TB"]
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            if unit == "B":
+                return f"{int(size)} B"
+            return f"{size:.2f} {unit}"
+        size /= 1024
+    return f"{size:.2f} TB"
+
+
+def format_timestamp(ts: Optional[int]) -> str:
+    if not ts:
+        return "-"
+    try:
+        return datetime.fromtimestamp(ts).strftime("%Y/%m/%d %H:%M:%S")
+    except Exception:
+        return "-"
+
+
+def render_template(path: pathlib.Path, replacements: Dict[str, str]) -> str:
+    template = path.read_text(encoding="utf-8")
+    for key, value in replacements.items():
+        template = template.replace(f"{{{{{key}}}}}", value)
+    return template
+
+
+def build_preview_payload(
+    path: pathlib.Path, filename: str, mime_type: Optional[str]
+) -> Dict[str, object]:
+    file_ext = pathlib.Path(filename).suffix.lower()
+    if (mime_type and mime_type.startswith("image/")) or (file_ext in IMAGE_EXTENSIONS):
+        return {"kind": "image"}
+    if (mime_type and mime_type.startswith("video/")) or (file_ext in VIDEO_EXTENSIONS):
+        return {"kind": "video"}
+    if (mime_type and mime_type.startswith("audio/")) or (file_ext in AUDIO_EXTENSIONS):
+        return {"kind": "audio"}
+    if mime_type == "application/pdf" or file_ext == ".pdf":
+        return {"kind": "pdf"}
+    if (
+        mime_type and (mime_type.startswith("text/") or mime_type == "application/json")
+    ) or file_ext in TEXT_EXTENSIONS:
+        snippet = ""
+        has_more = False
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as f:
+                snippet = f.read(4000)
+                if f.read(1):
+                    has_more = True
+        except Exception:
+            snippet = ""
+        if snippet:
+            return {"kind": "text", "snippet": snippet, "truncated": has_more}
+    return {"kind": "none"}
 
 
 def make_file_url(request: web.Request, token: str) -> str:
@@ -64,6 +156,12 @@ def make_file_url(request: web.Request, token: str) -> str:
     scheme = request.scheme
     host = request.headers.get("Host") or f"{HTTP_HOST}:{HTTP_PORT}"
     return f"{scheme}://{host}/files/{token}"
+
+
+def public_base_url() -> str:
+    if EXTERNAL_URL:
+        return EXTERNAL_URL.rstrip("/")
+    return f"http://{HTTP_HOST}:{HTTP_PORT}"
 
 
 def client_ip_from_request(request: web.Request) -> str:
@@ -92,9 +190,10 @@ def create_app() -> web.Application:
 
     async def handle_root(request: web.Request):
         """Serve upload.html from website/upload.html"""
-        html_path = ROOT / "website" / "upload.html"
-        if html_path.exists():
-            return web.FileResponse(html_path, headers={"Content-Type": "text/html; charset=utf-8"})
+        if UPLOAD_PAGE.exists():
+            return web.FileResponse(
+                UPLOAD_PAGE, headers={"Content-Type": "text/html; charset=utf-8"}
+            )
         return web.Response(text="upload.html not found", status=404)
 
     async def handle_upload(request: web.Request):
@@ -141,45 +240,74 @@ def create_app() -> web.Application:
         path = UPLOAD_DIR / meta["saved_name"]
         if not path.exists():
             raise web.HTTPNotFound(text="file missing")
-        
-        # Check if this is a preview request (for Discord embeds)
+
+        filename = meta.get("filename", "file")
+        size_bytes = meta.get("size", 0)
+        base_url = make_file_url(request, token).split("?")[0]
+        inline_url = f"{base_url}?raw=inline"
+
+        raw_mode = request.query.get("raw")
+        if raw_mode is not None:
+            headers = {}
+            if raw_mode != "inline":
+                headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+            return web.FileResponse(path, headers=headers)
+
         if request.query.get("preview") == "1":
-            filename = meta.get("filename", "file")
-            size_mb = meta.get("size", 0) / (1024 * 1024)
-            base_url = make_file_url(request, token).split("?")[0]
-            
-            # Generate OGP HTML for Discord preview
-            html = f"""<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta property="og:title" content="{filename}">
-    <meta property="og:description" content="ファイルサイズ: {size_mb:.2f} MB">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{base_url}">
-    <title>{filename}</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
-        .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
-        h1 {{ color: #333; }}
-        .info {{ color: #666; font-size: 14px; }}
-        .button {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 4px; }}
-        .button:hover {{ background: #764ba2; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📥 {filename}</h1>
-        <div class="info">
-            <p><strong>ファイルサイズ:</strong> {size_mb:.2f} MB</p>
-            <p><a href="{base_url}" class="button">ダウンロード</a></p>
-        </div>
-    </div>
-</body>
-</html>"""
-            return web.Response(text=html, content_type="text/html; charset=utf-8")
-        
-        return web.FileResponse(path, headers={"Content-Disposition": f'attachment; filename="{meta["filename"]}"'})
+            if not PREVIEW_TEMPLATE.exists():
+                return web.Response(text="preview template missing", status=500)
+            escaped_filename = html.escape(filename)
+            replacements = {
+                "TITLE": escaped_filename,
+                "DESCRIPTION": f"ファイルサイズ: {human_readable_size(size_bytes)}",
+                "URL": base_url,
+                "IMAGE_URL": inline_url,
+                "TOKEN": token,
+            }
+            rendered = render_template(PREVIEW_TEMPLATE, replacements)
+            return web.Response(
+                text=rendered, content_type="text/html", charset="utf-8"
+            )
+
+        if DOWNLOAD_PAGE.exists():
+            return web.FileResponse(
+                DOWNLOAD_PAGE, headers={"Content-Type": "text/html; charset=utf-8"}
+            )
+        return web.Response(text="download page not found", status=404)
+
+    async def handle_file_info(request: web.Request):
+        token = request.match_info.get("token")
+        index = load_index()
+        meta = index.get(token)
+        if not meta:
+            return web.json_response({"error": "not found"}, status=404)
+        path = UPLOAD_DIR / meta["saved_name"]
+        if not path.exists():
+            return web.json_response({"error": "file missing"}, status=404)
+
+        filename = meta.get("filename", "file")
+        size_bytes = meta.get("size", 0)
+        base_url = make_file_url(request, token).split("?")[0]
+        download_url = f"{base_url}?raw=1"
+        inline_url = f"{base_url}?raw=inline"
+        mime_type, _ = mimetypes.guess_type(filename)
+        preview = build_preview_payload(path, filename, mime_type)
+
+        return web.json_response(
+            {
+                "token": token,
+                "filename": filename,
+                "size": size_bytes,
+                "size_readable": human_readable_size(size_bytes),
+                "timestamp": meta.get("timestamp"),
+                "uploaded_at": format_timestamp(meta.get("timestamp")),
+                "mime_type": mime_type,
+                "download_url": download_url,
+                "inline_url": inline_url,
+                "base_url": base_url,
+                "preview": preview,
+            }
+        )
 
     async def handle_list(request: web.Request):
         index = load_index()
@@ -188,13 +316,15 @@ def create_app() -> web.Application:
         items = []
         for token, meta in index.items():
             if meta.get("ip") == client_ip:
-                items.append({
-                    "token": token,
-                    "filename": meta.get("filename"),
-                    "size": meta.get("size"),
-                    "timestamp": meta.get("timestamp"),
-                    "url": make_file_url(request, token),
-                })
+                items.append(
+                    {
+                        "token": token,
+                        "filename": meta.get("filename"),
+                        "size": meta.get("size"),
+                        "timestamp": meta.get("timestamp"),
+                        "url": make_file_url(request, token),
+                    }
+                )
         return web.json_response(items)
 
     async def handle_delete(request: web.Request):
@@ -217,7 +347,11 @@ def create_app() -> web.Application:
     app.router.add_post("/api/upload", handle_upload)
     app.router.add_get("/files/{token}", handle_get_file)
     app.router.add_get("/api/files", handle_list)
+    app.router.add_get("/api/file/{token}", handle_file_info)
     app.router.add_delete("/api/delete/{token}", handle_delete)
+
+    if ASSETS_DIR.exists():
+        app.router.add_static("/assets", str(ASSETS_DIR))
 
     return app
 
@@ -277,11 +411,42 @@ async def on_message(message: discord.Message) -> None:
             embed = discord.Embed(
                 title=f"{owner}/{repo} README",
                 description=f"```\n{preview}\n```",
-                color=0x1f6feb,
+                color=0x1F6FEB,
             )
             await message.channel.send(embed=embed)
         else:
             await message.channel.send(f"README not found for **{owner}/{repo}**")
+
+    file_match = FILE_URL_PATTERN.search(message.content)
+    if file_match:
+        base, token = file_match.groups()
+        index = load_index()
+        meta = index.get(token)
+        if meta:
+            filename = meta.get("filename", "file")
+            size_readable = human_readable_size(meta.get("size", 0))
+            uploaded_at = format_timestamp(meta.get("timestamp"))
+            page_url = f"{base}/files/{token}"
+            embed = discord.Embed(
+                title=f"共有ファイル: {filename}",
+                description=f"[こちらからダウンロード]({page_url})",
+                color=0x4E73DF,
+            )
+            mime_type, _ = mimetypes.guess_type(filename)
+            file_type = mime_type or "不明"
+            embed.add_field(name="ファイルサイズ", value=size_readable, inline=True)
+            embed.add_field(name="アップロード", value=uploaded_at, inline=True)
+            embed.add_field(name="ファイルタイプ", value=file_type, inline=True)
+            embed.set_footer(text="共有リンク詳細")
+            try:
+                await message.edit(suppress=True)
+            except (discord.Forbidden, discord.HTTPException):
+                pass
+            await message.channel.send(embed=embed)
+        else:
+            await message.channel.send(
+                f"共有リンクのファイル情報を見つけられませんでした: {token}"
+            )
 
     await bot.process_commands(message)
 
@@ -315,7 +480,11 @@ async def setupverify(interaction: discord.Interaction, role: discord.Role) -> N
         )
         return
 
-    embed = discord.Embed(title="認証", description="以下のボタンを押して認証してください。", color=0x00FF00)
+    embed = discord.Embed(
+        title="認証",
+        description="以下のボタンを押して認証してください。",
+        color=0x00FF00,
+    )
     view = discord.ui.View()
     view.add_item(VerifyButton(role.id))
     await interaction.response.send_message(embed=embed, view=view)
@@ -323,16 +492,31 @@ async def setupverify(interaction: discord.Interaction, role: discord.Role) -> N
 
 class VerifyButton(discord.ui.Button):
     def __init__(self, role_id: int) -> None:
-        super().__init__(label="認証する", style=discord.ButtonStyle.success, custom_id=f"verify_button_{role_id}")
+        super().__init__(
+            label="認証する",
+            style=discord.ButtonStyle.success,
+            custom_id=f"verify_button_{role_id}",
+        )
         self.role_id = role_id
 
     async def callback(self, interaction: discord.Interaction) -> None:
         role = interaction.guild.get_role(self.role_id)
         if not role:
-            await interaction.response.send_message("ロールが見つかりませんでした。", ephemeral=True)
+            await interaction.response.send_message(
+                "ロールが見つかりませんでした。", ephemeral=True
+            )
             return
         await interaction.user.add_roles(role)
         await interaction.response.send_message("認証されました！", ephemeral=True)
+
+
+@bot.tree.command(name="upload", description="アップロードページのリンクを表示します")
+async def upload_link(interaction: discord.Interaction) -> None:
+    base = public_base_url()
+    url = f"{base}/" if not base.endswith("/") else base
+    await interaction.response.send_message(
+        f"📤 ファイルアップロードはこちらからどうぞ:\n{url}", ephemeral=False
+    )
 
 
 if __name__ == "__main__":
