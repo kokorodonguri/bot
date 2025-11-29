@@ -206,6 +206,216 @@ h1 {
 
 .preview-audio {
     width: 100%;
+    display: block;
+    margin: 12px 0 4px;
+    border: 1px solid #dee3ff;
+    border-radius: 14px;
+    padding: 10px;
+    background: linear-gradient(135deg, #f9fbff 0%, #f1f4ff 100%);
+}
+
+.audio-preview-card {
+    background: #fdfdff;
+    border-radius: 18px;
+    padding: 20px;
+    border: 1px solid #e3e7fb;
+    box-shadow: 0 12px 24px rgba(30, 30, 80, 0.08);
+}
+
+.audio-preview-headline {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.audio-preview-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #e9eeff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+}
+
+.audio-preview-headline-text {
+    flex: 1;
+}
+
+.audio-preview-label {
+    font-size: 0.85rem;
+    color: #6b6f85;
+}
+
+.audio-preview-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #202338;
+    word-break: break-all;
+}
+
+.audio-preview-meta {
+    margin-top: 8px;
+    color: #5b6074;
+    font-size: 0.9rem;
+}
+
+.audio-duration-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #4a4e65;
+    margin-top: 10px;
+}
+
+.audio-duration-value {
+    font-size: 1rem;
+    color: #1f2240;
+}
+
+.audio-controls {
+    margin-top: 12px;
+    padding: 14px;
+    background: #eef1ff;
+    border-radius: 14px;
+    border: 1px solid #d8ddfb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.audio-play-button {
+    background: linear-gradient(135deg, #606af4 0%, #7d84ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+    box-shadow: 0 8px 20px rgba(96, 106, 244, 0.35);
+}
+
+.audio-play-button:hover {
+    filter: brightness(1.05);
+}
+
+.audio-timeline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.audio-progress {
+    flex: 1;
+    appearance: none;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        #676fe2 var(--progress, 0%),
+        #cfd4ff var(--progress, 0%)
+    );
+    outline: none;
+    border: none;
+}
+
+.audio-progress:disabled {
+    opacity: 0.5;
+}
+
+.audio-progress:focus-visible {
+    outline: 2px solid #6a72e8;
+    outline-offset: 2px;
+}
+
+.audio-progress::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 999px;
+}
+
+.audio-progress::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #525bd3;
+    box-shadow: 0 4px 12px rgba(82, 91, 211, 0.45);
+    margin-top: -4px;
+}
+
+.audio-progress::-moz-range-track {
+    height: 10px;
+    border-radius: 999px;
+    background: transparent;
+}
+
+.audio-progress::-moz-range-progress {
+    height: 10px;
+    border-radius: 999px;
+    background: #676fe2;
+}
+
+.audio-progress::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(82, 91, 211, 0.45);
+}
+
+.audio-time-label {
+    font-size: 0.85rem;
+    color: #3d3f57;
+    min-width: 80px;
+    text-align: right;
+}
+
+.audio-speed-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+}
+
+.audio-speed-label {
+    font-size: 0.85rem;
+    color: #6d6f80;
+}
+
+.audio-speed-buttons {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.audio-speed-button {
+    border: 1px solid #c6ccf5;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    color: #3d4194;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.audio-speed-button.active {
+    background: #5762d5;
+    border-color: #5762d5;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(87, 98, 213, 0.35);
+}
+
+.audio-preview-tip {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: #6c6c6c;
 }
 
 .preview-frame {
