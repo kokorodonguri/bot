@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ファイル共有 - GigaFile風アップローダー</title>
+        <title>どんぐりのファイル共有-アップローダー</title>
         <style>
             * {
                 margin: 0;
@@ -44,12 +44,12 @@
             .cloud {
                 position: absolute;
                 top: 20px;
-                left: -20%;
+                left: 0;
                 width: 150px;
                 height: 80px;
                 border-radius: 50px;
                 background: rgba(255, 255, 255, 0.92);
-                filter: blur(0.5px);
+                filter: blur(0.7px);
                 opacity: 0.85;
                 --scale: 1;
                 animation: cloudMove 50s linear infinite;
@@ -79,10 +79,18 @@
             /* 雲が横に動くアニメーション */
             @keyframes cloudMove {
                 0% {
-                    transform: translateX(-10%) scale(var(--scale));
+                    transform: translateX(120vw) scale(var(--scale));
+                    opacity: 0;
+                }
+                10% {       
+                    opacity: 0.85;
+                }
+                90% {
+                    opacity: 0.85;
                 }
                 100% {
-                    transform: translateX(85vw) scale(var(--scale));
+                    transform: translateX(-140vw) scale(var(--scale));
+                    opacity: 0;
                 }
             }
 
