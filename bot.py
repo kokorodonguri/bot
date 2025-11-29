@@ -34,6 +34,9 @@ ASSETS_DIR = WEBSITE_DIR / "assets"
 HTTP_HOST = os.getenv("HTTP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))
 HTTP_LISTING_PORT = int(os.getenv("HTTP_LISTING_PORT", "8004"))
+MAX_UPLOAD_BYTES = int(
+    os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024 * 1024))
+)  # default 5GB
 EXTERNAL_URL = os.getenv(
     "EXTERNAL_URL"
 )  # optional public base URL (e.g. https://example.com)
@@ -186,6 +189,12 @@ def client_ip_from_request(request: web.Request) -> str:
 async def error_middleware(request: web.Request, handler):
     try:
         return await handler(request)
+    except web.HTTPRequestEntityTooLarge as exc:
+        limit = human_readable_size(exc.max_size or MAX_UPLOAD_BYTES)
+        return web.json_response(
+            {"error": f"ファイルサイズが大きすぎます。上限: {limit}"},
+            status=exc.status,
+        )
     except web.HTTPException:
         raise
     except Exception as e:
@@ -193,7 +202,9 @@ async def error_middleware(request: web.Request, handler):
 
 
 def create_app() -> web.Application:
-    app = web.Application(middlewares=[error_middleware])
+    app = web.Application(
+        middlewares=[error_middleware], client_max_size=MAX_UPLOAD_BYTES
+    )
 
     async def handle_root(request: web.Request):
         """Serve upload.html from website/upload.html"""
