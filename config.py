@@ -26,6 +26,7 @@ HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))
 HTTP_LISTING_PORT = int(os.getenv("HTTP_LISTING_PORT", "8004"))
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024 * 1024)))
 EXTERNAL_URL = os.getenv("EXTERNAL_URL")
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://upload.dongurihub.jp")
 MAX_IP_STORAGE_BYTES = int(
     os.getenv("MAX_IP_STORAGE_BYTES", str(80 * 1024 * 1024 * 1024))
 )

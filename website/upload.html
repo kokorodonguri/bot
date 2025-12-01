@@ -209,6 +209,34 @@
                 margin-top: 5px;
             }
 
+            .progress-actions {
+                margin-top: 12px;
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            .cancel-button {
+                background: transparent;
+                border: 1px solid #dc3545;
+                color: #dc3545;
+                border-radius: 6px;
+                padding: 6px 14px;
+                font-size: 13px;
+                cursor: pointer;
+                transition:
+                    background 0.2s ease,
+                    color 0.2s ease;
+            }
+
+            .cancel-button:hover:not(:disabled) {
+                background: rgba(220, 53, 69, 0.08);
+            }
+
+            .cancel-button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
             .upload-result {
                 margin-top: 20px;
                 padding: 15px;
@@ -388,6 +416,16 @@
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <div class="progress-text" id="progressText">0%</div>
+                    <div class="progress-actions">
+                        <button
+                            class="cancel-button"
+                            id="cancelButton"
+                            type="button"
+                            disabled
+                        >
+                            アップロードをキャンセル
+                        </button>
+                    </div>
                 </div>
                 <div class="upload-result" id="uploadResult"></div>
                 <div class="preview-container" id="previewContainer">
@@ -439,6 +477,39 @@
             const errorContainer = document.getElementById("errorContainer");
             const successContainer =
                 document.getElementById("successContainer");
+            const cancelButton = document.getElementById("cancelButton");
+            let currentUpload = null;
+
+            function resetProgressUI() {
+                progressFill.style.width = "0%";
+                progressText.textContent = "0%";
+            }
+
+            function showProgressUI() {
+                progressContainer.style.display = "block";
+                resetProgressUI();
+                if (cancelButton) {
+                    cancelButton.disabled = false;
+                    cancelButton.textContent = "アップロードをキャンセル";
+                }
+            }
+
+            function hideProgressUI() {
+                progressContainer.style.display = "none";
+                resetProgressUI();
+                if (cancelButton) {
+                    cancelButton.disabled = true;
+                    cancelButton.textContent = "アップロードをキャンセル";
+                }
+            }
+
+            cancelButton?.addEventListener("click", () => {
+                if (currentUpload) {
+                    cancelButton.disabled = true;
+                    cancelButton.textContent = "キャンセルしています...";
+                    currentUpload.abort();
+                }
+            });
 
             // Event listeners for file selection
             selectButton.addEventListener("click", () => fileInput.click());
@@ -467,6 +538,13 @@
             function handleFileSelect() {
                 const file = fileInput.files[0];
                 if (!file) return;
+                if (currentUpload) {
+                    showError(
+                        "アップロード中です。キャンセルしてから別のファイルを選択してください。",
+                    );
+                    fileInput.value = "";
+                    return;
+                }
 
                 // Show preview
                 showPreview(file);
@@ -479,12 +557,13 @@
                 const formData = new FormData();
                 formData.append("file", file);
 
-                progressContainer.style.display = "block";
+                showProgressUI();
                 uploadResult.style.display = "none";
                 uploadResult.innerHTML = "";
 
                 try {
                     const xhr = new XMLHttpRequest();
+                    currentUpload = xhr;
 
                     xhr.upload.addEventListener("progress", (e) => {
                         if (e.lengthComputable) {
@@ -516,14 +595,13 @@
                             </div>
                             </div>`,
                             );
-                            // Store URL for copying on the button inside the upload result container
                             const btns =
                                 uploadResult.querySelectorAll(
                                     ".download-button",
                                 );
                             if (btns[0]) btns[0].dataset.url = url;
                             if (btns[1]) btns[1].dataset.url = discordUrl;
-                            progressContainer.style.display = "none";
+                            hideProgressUI();
                         } else {
                             const response = JSON.parse(xhr.responseText);
                             showError(
@@ -533,7 +611,7 @@
                                 "error",
                                 `エラーが発生しました: ${response.error}`,
                             );
-                            progressContainer.style.display = "none";
+                            hideProgressUI();
                         }
                     });
 
@@ -543,14 +621,27 @@
                             "error",
                             "ネットワークエラーが発生しました",
                         );
-                        progressContainer.style.display = "none";
+                        hideProgressUI();
+                    });
+
+                    xhr.addEventListener("abort", () => {
+                        hideProgressUI();
+                        uploadResult.style.display = "none";
+                        showError("アップロードをキャンセルしました");
+                    });
+
+                    xhr.addEventListener("loadend", () => {
+                        if (currentUpload === xhr) {
+                            currentUpload = null;
+                        }
                     });
 
                     xhr.open("POST", API_BASE + "/upload");
                     xhr.send(formData);
                 } catch (error) {
                     showError(`エラー: ${error.message}`);
-                    progressContainer.style.display = "none";
+                    hideProgressUI();
+                    currentUpload = null;
                 }
             }
 

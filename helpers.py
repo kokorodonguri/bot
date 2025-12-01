@@ -7,7 +7,7 @@ from typing import Dict, Optional
 
 from aiohttp import web
 
-from config import EXTERNAL_URL, HTTP_HOST, HTTP_PORT
+from config import EXTERNAL_URL, HTTP_HOST, HTTP_PORT, PUBLIC_BASE_URL
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
 VIDEO_EXTENSIONS = {".mp4", ".webm", ".mov", ".mkv", ".avi"}
@@ -99,6 +99,8 @@ def make_file_url(request: web.Request, token: str) -> str:
 def public_base_url() -> str:
     if EXTERNAL_URL:
         return EXTERNAL_URL.rstrip("/")
+    if PUBLIC_BASE_URL:
+        return PUBLIC_BASE_URL.rstrip("/")
     return f"http://{HTTP_HOST}:{HTTP_PORT}"
 
 

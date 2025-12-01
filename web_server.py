@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import mimetypes
 import time
 import uuid
@@ -83,7 +85,7 @@ def create_uploader_app() -> web.Application:
                 used_str = human_readable_size(current_usage)
                 return web.json_response(
                     {
-                        "error": "今日のupload容量上限です。",
+                        "error": "同じIPからアップロードできる容量の上限を超えています。",
                         "limit": limit_str,
                         "used": used_str,
                         "remaining": "0 B",
@@ -93,18 +95,29 @@ def create_uploader_app() -> web.Application:
 
         size = 0
         quota_hit = False
-        with dest.open("wb") as f:
-            while True:
-                chunk = await field.read_chunk()
-                if not chunk:
-                    break
-                f.write(chunk)
-                size += len(chunk)
-                if quota_limit > 0 and (current_usage + size) > quota_limit:
-                    quota_hit = True
-                    break
-
-        await field.release()
+        upload_completed = False
+        try:
+            with dest.open("wb") as f:
+                while True:
+                    chunk = await field.read_chunk()
+                    if not chunk:
+                        upload_completed = True
+                        break
+                    f.write(chunk)
+                    size += len(chunk)
+                    if quota_limit > 0 and (current_usage + size) > quota_limit:
+                        quota_hit = True
+                        break
+        except asyncio.CancelledError:
+            dest.unlink(missing_ok=True)
+            raise
+        except Exception:
+            dest.unlink(missing_ok=True)
+            raise
+        finally:
+            if upload_completed:
+                with contextlib.suppress(Exception):
+                    await field.release()
 
         if quota_hit:
             dest.unlink(missing_ok=True)
