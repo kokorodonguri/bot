@@ -18,6 +18,7 @@ UPLOAD_PAGE = WEBSITE_DIR / "upload.html"
 DOWNLOAD_PAGE = WEBSITE_DIR / "download.html"
 PREVIEW_TEMPLATE = WEBSITE_DIR / "preview.html"
 LISTING_PAGE = WEBSITE_DIR / "listing.html"
+LISTING_NOT_FOUND_PAGE = WEBSITE_DIR / "listing_not_found.html"
 ASSETS_DIR = WEBSITE_DIR / "assets"
 TOKEN_PATH = ROOT / "token.txt"
 
@@ -27,6 +28,7 @@ HTTP_LISTING_PORT = int(os.getenv("HTTP_LISTING_PORT", "8004"))
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024 * 1024)))
 EXTERNAL_URL = os.getenv("EXTERNAL_URL")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://upload.dongurihub.jp")
+LISTING_HOME_URL = os.getenv("LISTING_HOME_URL", "/")
 MAX_IP_STORAGE_BYTES = int(
     os.getenv("MAX_IP_STORAGE_BYTES", str(80 * 1024 * 1024 * 1024))
 )

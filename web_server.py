@@ -8,9 +8,12 @@ import uuid
 from typing import Dict, List
 
 from aiohttp import web
+
 from config import (
     ASSETS_DIR,
     DOWNLOAD_PAGE,
+    LISTING_HOME_URL,
+    LISTING_NOT_FOUND_PAGE,
     LISTING_PAGE,
     MAX_IP_STORAGE_BYTES,
     MAX_UPLOAD_BYTES,
@@ -51,6 +54,20 @@ def create_uploader_app() -> web.Application:
     app = web.Application(
         middlewares=[error_middleware], client_max_size=MAX_UPLOAD_BYTES
     )
+
+    def file_not_found_page() -> web.Response:
+        if LISTING_NOT_FOUND_PAGE.exists():
+            rendered = render_template(
+                LISTING_NOT_FOUND_PAGE,
+                {"LISTING_URL": LISTING_HOME_URL},
+            )
+            return web.Response(
+                text=rendered,
+                content_type="text/html",
+                charset="utf-8",
+                status=404,
+            )
+        return web.Response(text="file not found", status=404)
 
     async def handle_root(request: web.Request):
         if UPLOAD_PAGE.exists():
@@ -152,10 +169,10 @@ def create_uploader_app() -> web.Application:
         index = load_index()
         meta = index.get(token)
         if not meta:
-            raise web.HTTPNotFound(text="file not found")
+            return file_not_found_page()
         path = UPLOAD_DIR / meta["saved_name"]
         if not path.exists():
-            raise web.HTTPNotFound(text="file missing")
+            return file_not_found_page()
 
         filename = meta.get("filename", "file")
         size_bytes = meta.get("size", 0)

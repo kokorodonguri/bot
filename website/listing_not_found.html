@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1"
+        />
+        <title>ファイルが見つかりませんでした</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+                --bg: #0f172a;
+                --card: rgba(15, 23, 42, 0.78);
+                --text: #f8fafc;
+                --muted: rgba(248, 250, 252, 0.7);
+                --accent: #22d3ee;
+                --border: rgba(248, 250, 252, 0.1);
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                font-family:
+                    "Inter",
+                    "Noto Sans JP",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+                background: radial-gradient(
+                    circle at top,
+                    #0f172a,
+                    #020617 65%
+                );
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 32px 16px;
+            }
+            .card {
+                max-width: 640px;
+                width: 100%;
+                padding: 40px;
+                border-radius: 24px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                box-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
+                backdrop-filter: blur(18px);
+            }
+            .eyebrow {
+                text-transform: uppercase;
+                letter-spacing: 0.18em;
+                font-size: 0.75rem;
+                color: var(--muted);
+                margin-bottom: 12px;
+            }
+            h1 {
+                margin: 0;
+                font-size: clamp(1.75rem, 3vw, 2.5rem);
+            }
+            .message {
+                margin-top: 16px;
+                margin-bottom: 24px;
+                color: var(--muted);
+                line-height: 1.8;
+            }
+            .token {
+                display: inline-flex;
+                align-items: center;
+                padding: 6px 12px;
+                font-family:
+                    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                    monospace;
+                background: rgba(15, 23, 42, 0.5);
+                border-radius: 999px;
+                border: 1px solid var(--border);
+                color: var(--text);
+                font-size: 0.95rem;
+            }
+            .token-label {
+                font-size: 0.8rem;
+                margin-right: 8px;
+                text-transform: uppercase;
+                color: var(--muted);
+                letter-spacing: 0.08em;
+            }
+            .actions {
+                margin-top: 32px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .btn {
+                flex: 1;
+                min-width: 180px;
+                border: 1px solid var(--border);
+                background: rgba(15, 23, 42, 0.8);
+                color: var(--text);
+                padding: 12px 18px;
+                border-radius: 12px;
+                font-size: 0.95rem;
+                cursor: pointer;
+                transition:
+                    background 0.2s ease,
+                    border-color 0.2s ease;
+            }
+            .btn.primary {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #0f172a;
+                font-weight: 600;
+            }
+            .btn:hover {
+                border-color: rgba(248, 250, 252, 0.5);
+            }
+            .tips {
+                margin-top: 28px;
+                padding: 16px 18px;
+                border-radius: 16px;
+                background: rgba(15, 23, 42, 0.6);
+                border: 1px dashed var(--border);
+                color: var(--muted);
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            @media (max-width: 560px) {
+                .card {
+                    padding: 28px 24px;
+                }
+                .actions {
+                    flex-direction: column;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main class="card" data-listing-url="{{LISTING_URL}}">
+            <p class="eyebrow">File Listing</p>
+            <h1>ファイルが見つかりませんでした</h1>
+            <p class="message">
+                共有ファイル一覧から開いたリンクが古いか、ファイルが削除された可能性があります。もう一度一覧を開いて最新の情報を確認してください。
+            </p>
+            <div class="token">
+                <span class="token-label">Token</span>
+                <span data-token>--</span>
+            </div>
+            <div class="actions">
+                <button class="btn primary" type="button" data-open-listing>
+                    共有ファイル一覧を開く
+                </button>
+                <button class="btn" type="button" data-go-back>
+                    前のページに戻る
+                </button>
+            </div>
+            <div class="tips">
+                ・リンクを共有した相手にファイルの状況を確認してください。<br />
+                ・リンクを更新する場合は、もう一度アップロードして新しいトークンを取得してください。
+            </div>
+        </main>
+        <script>
+            (() => {
+                const getToken = () => {
+                    const segments = window.location.pathname
+                        .split("/")
+                        .filter(Boolean);
+                    const idx = segments.indexOf("files");
+                    if (idx !== -1 && segments[idx + 1]) {
+                        return segments[idx + 1];
+                    }
+                    return null;
+                };
+                const token = getToken();
+                const tokenEl = document.querySelector("[data-token]");
+                if (token && tokenEl) {
+                    tokenEl.textContent = token;
+                }
+                const listingBtn = document.querySelector(
+                    "[data-open-listing]",
+                );
+                const listingFallback =
+                    document
+                        .querySelector("[data-listing-url]")
+                        ?.getAttribute("data-listing-url") || "/";
+                const fromListing = (() => {
+                    try {
+                        if (!document.referrer) return null;
+                        const refUrl = new URL(document.referrer);
+                        if (refUrl.pathname.includes("listing")) {
+                            return refUrl.href;
+                        }
+                        return null;
+                    } catch {
+                        return null;
+                    }
+                })();
+                listingBtn?.addEventListener("click", () => {
+                    const target = fromListing || listingFallback;
+                    window.location.href = target;
+                });
+                const backBtn = document.querySelector("[data-go-back]");
+                backBtn?.addEventListener("click", () => {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = listingFallback;
+                    }
+                });
+            })();
+        </script>
+    </body>
+</html>

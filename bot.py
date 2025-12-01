@@ -28,6 +28,7 @@ UPLOAD_PAGE = WEBSITE_DIR / "upload.html"
 DOWNLOAD_PAGE = WEBSITE_DIR / "download.html"
 PREVIEW_TEMPLATE = WEBSITE_DIR / "preview.html"
 LISTING_PAGE = WEBSITE_DIR / "listing.html"
+LISTING_NOT_FOUND_PAGE = WEBSITE_DIR / "listing_not_found.html"
 ASSETS_DIR = WEBSITE_DIR / "assets"
 
 # Server bind settings (can be overridden with env)
@@ -41,6 +42,7 @@ EXTERNAL_URL = os.getenv(
     "EXTERNAL_URL"
 )  # optional public base URL (e.g. https://example.com)
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://upload.dongurihub.jp")
+LISTING_HOME_URL = os.getenv("LISTING_HOME_URL", "/")
 
 # Discord/gihub constants
 GITHUB_API_URL = "https://api.github.com/repos"
@@ -209,6 +211,20 @@ def create_app() -> web.Application:
         middlewares=[error_middleware], client_max_size=MAX_UPLOAD_BYTES
     )
 
+    def file_not_found_page() -> web.Response:
+        if LISTING_NOT_FOUND_PAGE.exists():
+            rendered = render_template(
+                LISTING_NOT_FOUND_PAGE,
+                {"LISTING_URL": LISTING_HOME_URL},
+            )
+            return web.Response(
+                text=rendered,
+                content_type="text/html",
+                charset="utf-8",
+                status=404,
+            )
+        return web.Response(text="file not found", status=404)
+
     async def handle_root(request: web.Request):
         """Serve upload.html from website/upload.html"""
         if UPLOAD_PAGE.exists():
@@ -257,10 +273,10 @@ def create_app() -> web.Application:
         index = load_index()
         meta = index.get(token)
         if not meta:
-            raise web.HTTPNotFound(text="file not found")
+            return file_not_found_page()
         path = UPLOAD_DIR / meta["saved_name"]
         if not path.exists():
-            raise web.HTTPNotFound(text="file missing")
+            return file_not_found_page()
 
         filename = meta.get("filename", "file")
         size_bytes = meta.get("size", 0)
