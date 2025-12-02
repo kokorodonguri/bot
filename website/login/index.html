@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1"
+        />
+        <title>どんぐりのDB</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+        <link rel="stylesheet" href="/login/assets/login.css" />
+    </head>
+    <body>
+        <div class="sky" aria-hidden="true">
+            <div class="stars layer-1"></div>
+            <div class="stars layer-2"></div>
+            <div class="stars layer-3"></div>
+        </div>
+        <main class="panel" data-login-panel>
+            <div class="panel__grid">
+                <section class="panel__content" data-desktop-area>
+                    <header class="panel__hero">
+                        <p class="panel__eyebrow">Secure Area</p>
+                        <h1>どんぐりのDB</h1>
+                        <p class="lead">
+                            Discord
+                            で共有したファイルを閲覧・ダウンロードするためのポータルです。ログインすると公開一覧へ遷移します。
+                        </p>
+                    </header>
+                    <ul class="panel__features">
+                        <li>リアルタイム検索付きの共有ファイル一覧</li>
+                        <li>Discord からのアップロード履歴を自動反映</li>
+                        <li>ログイン済みなら PC からも即ダウンロード可能</li>
+                    </ul>
+                    <section class="panel__support">
+                        <p class="note">
+                            新規アカウントは Discord の 963bot で
+                            <code
+                                >/adduser &lt;username&gt;
+                                &lt;password&gt;</code
+                            >
+                            を使って作成してください。
+                        </p>
+                        <p class="hint">
+                            🖥️ PC 向けに最適化されたレイアウトです。
+                        </p>
+                    </section>
+                </section>
+                <section class="panel__form-wrapper" data-auth-area>
+                    <div class="panel__mobile-intro" aria-hidden="true">
+                        <p class="panel__eyebrow">Mobile Access</p>
+                        <h2>すぐにログイン</h2>
+                        <p>
+                            スマホ比率の画面では、片手でも操作しやすいようにフォームを縦に配置しています。
+                        </p>
+                    </div>
+                    <form
+                        method="post"
+                        action="/login"
+                        class="panel__form"
+                        data-login-form
+                    >
+                        <label>
+                            ユーザーID
+                            <input
+                                type="text"
+                                name="username"
+                                required
+                                autocomplete="username"
+                            />
+                        </label>
+                        <label>
+                            パスワード
+                            <input
+                                type="password"
+                                name="password"
+                                required
+                                autocomplete="current-password"
+                            />
+                        </label>
+                        <input
+                            type="hidden"
+                            name="next"
+                            value="/"
+                            data-next-field
+                        />
+                        <button type="submit">
+                            <span>ログイン</span>
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                    <div class="error" data-error hidden>
+                        ユーザーIDまたはパスワードが正しくありません。
+                    </div>
+                    <p class="hint hint--mobile">
+                        📱 スマホではこのフォームが単独で表示されます。
+                    </p>
+                </section>
+            </div>
+        </main>
+        <script src="/login/assets/login.js" type="module"></script>
+    </body>
+</html>

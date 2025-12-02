@@ -9,7 +9,7 @@ from aiohttp import web
 from discord import app_commands
 from discord.ext import commands
 
-from config import HTTP_HOST, HTTP_LISTING_PORT, HTTP_PORT
+from config import HTTP_HOST, HTTP_LISTING_PORT, HTTP_LOGIN_PORT, HTTP_PORT
 from file_index import load_index
 from github_client import fetch_readme
 from helpers import format_timestamp, human_readable_size, public_base_url
@@ -47,6 +47,12 @@ def register_events(bot: commands.Bot) -> None:
             await listing_runner.setup()
             listing_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LISTING_PORT)
             await listing_site.start()
+            bot.listing_site = listing_site
+            if HTTP_LOGIN_PORT != HTTP_LISTING_PORT:
+                login_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LOGIN_PORT)
+                await login_site.start()
+                bot.login_site = login_site
+                print(f"Login page server started on {HTTP_HOST}:{HTTP_LOGIN_PORT}")
             bot.listing_runner = listing_runner
             print(f"Listing server started on {HTTP_HOST}:{HTTP_LISTING_PORT}")
 

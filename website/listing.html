@@ -4,6 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>共有ファイル一覧</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
         <link rel="stylesheet" href="/assets/listing.css" />
     </head>
     <body>
@@ -13,7 +14,8 @@
                     <p class="eyebrow">File Share Dashboard</p>
                     <h1>共有ファイル一覧</h1>
                     <p class="lead">
-                        `uploads/` ディレクトリに保存されたファイルを、ブラウザからすばやく検索・確認できます。
+                        `uploads/`
+                        ディレクトリに保存されたファイルを、ブラウザからすばやく検索・確認できます。
                     </p>
                 </div>
                 <div class="hero__stats">
@@ -31,30 +33,59 @@
             <section class="panel">
                 <div class="panel__header">
                     <div class="toolbar">
-                        <label class="search">
-                            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                                <path
-                                    d="M10.5 3a7.5 7.5 0 0 1 5.901 12.123l4.239 4.238-1.414 1.415-4.238-4.239A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 4.366 8.892l.174-.215.215-.174A5.5 5.5 0 0 0 10.5 5z"
-                                    fill="currentColor"
+                        <div class="toolbar__primary">
+                            <label class="search">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="20"
+                                    height="20"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M10.5 3a7.5 7.5 0 0 1 5.901 12.123l4.239 4.238-1.414 1.415-4.238-4.239A7.5 7.5 0 1 1 10.5 3zm0 2a5.5 5.5 0 1 0 4.366 8.892l.174-.215.215-.174A5.5 5.5 0 0 0 10.5 5z"
+                                        fill="currentColor"
+                                    />
+                                </svg>
+                                <input
+                                    type="search"
+                                    placeholder="ファイル名で検索"
+                                    aria-label="ファイル名で検索"
+                                    data-search
                                 />
-                            </svg>
-                            <input
-                                type="search"
-                                placeholder="ファイル名で検索"
-                                aria-label="ファイル名で検索"
-                                data-search
-                            />
-                        </label>
-                        <button class="refresh" type="button" data-refresh>
-                            最新の情報を取得
-                        </button>
+                            </label>
+                        </div>
+                        <div class="toolbar__secondary">
+                            <label class="filter">
+                                <span>期間</span>
+                                <select
+                                    aria-label="期間で絞り込み"
+                                    data-time-filter
+                                >
+                                    <option value="all">すべて</option>
+                                    <option value="24h">直近24時間</option>
+                                    <option value="7d">直近7日間</option>
+                                    <option value="30d">直近30日間</option>
+                                </select>
+                            </label>
+                            <button class="sort" type="button" data-sort>
+                                新しい順
+                            </button>
+                            <button class="refresh" type="button" data-refresh>
+                                最新の情報を取得
+                            </button>
+                        </div>
                     </div>
                     <p class="meta">
-                        このリストは <span data-host></span> 上で公開されています。各行のリンクからブラウザで直接開けます。
+                        このリストは
+                        <span data-host></span>
+                        上で公開されています。各行のリンクからブラウザで直接開けます。
                     </p>
                 </div>
 
                 <div class="status" data-status>読み込み中...</div>
+                <div class="scroll-hint" aria-hidden="true">
+                    <span>👉</span>スマホでは横にスワイプできます
+                </div>
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -68,14 +99,18 @@
                         </thead>
                         <tbody data-table-body>
                             <tr>
-                                <td colspan="5" class="placeholder">読み込み中...</td>
+                                <td colspan="5" class="placeholder">
+                                    読み込み中...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="empty" data-empty hidden>
                     <h2>アップロードされたファイルはありません</h2>
-                    <p>ファイルをアップロードすると、ここに自動的に表示されます。</p>
+                    <p>
+                        ファイルをアップロードすると、ここに自動的に表示されます。
+                    </p>
                 </div>
             </section>
         </div>
