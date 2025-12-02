@@ -11,6 +11,13 @@ from dotenv import load_dotenv
 # import configuration constants without worrying about calling load_dotenv().
 load_dotenv()
 
+
+def _env_flag(name: str, default: bool = True) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "off", "no"}
+
 ROOT = pathlib.Path(__file__).parent
 WEBSITE_DIR = ROOT / "website"
 UPLOAD_DIR = ROOT / "uploads"
@@ -31,6 +38,8 @@ HTTP_HOST = os.getenv("HTTP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))
 HTTP_LISTING_PORT = int(os.getenv("HTTP_LISTING_PORT", "8004"))
 HTTP_LOGIN_PORT = int(os.getenv("HTTP_LOGIN_PORT", "8080"))
+ENABLE_UPLOAD_SERVER = _env_flag("ENABLE_UPLOAD_SERVER", True)
+ENABLE_LISTING_SERVER = _env_flag("ENABLE_LISTING_SERVER", True)
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024 * 1024)))
 EXTERNAL_URL = os.getenv("EXTERNAL_URL")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://upload.dongurihub.jp")

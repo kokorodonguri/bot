@@ -9,7 +9,14 @@ from aiohttp import web
 from discord import app_commands
 from discord.ext import commands
 
-from config import HTTP_HOST, HTTP_LISTING_PORT, HTTP_LOGIN_PORT, HTTP_PORT
+from config import (
+    ENABLE_LISTING_SERVER,
+    ENABLE_UPLOAD_SERVER,
+    HTTP_HOST,
+    HTTP_LISTING_PORT,
+    HTTP_LOGIN_PORT,
+    HTTP_PORT,
+)
 from file_index import load_index
 from github_client import fetch_readme
 from helpers import format_timestamp, human_readable_size, public_base_url
@@ -17,6 +24,9 @@ from web_server import create_listing_app, create_uploader_app
 
 GITHUB_URL_PATTERN = re.compile(r"https://github.com/([\w\-]+)/([\w\-]+)(?:/|$)")
 FILE_URL_PATTERN = re.compile(r"(https?://[^\s/]+)/files/([0-9a-fA-F]+)")
+
+UPLOAD_SERVER_DISABLED_LOGGED = False
+LISTING_SERVER_DISABLED_LOGGED = False
 
 
 def configure_bot(bot: commands.Bot) -> None:
@@ -27,34 +37,49 @@ def configure_bot(bot: commands.Bot) -> None:
 def register_events(bot: commands.Bot) -> None:
     @bot.event
     async def on_ready() -> None:  # type: ignore[misc]
+        global UPLOAD_SERVER_DISABLED_LOGGED, LISTING_SERVER_DISABLED_LOGGED
         print(f"Logged in as {bot.user}")
 
         if not hasattr(bot, "session"):
             bot.session = aiohttp.ClientSession()
 
-        if not hasattr(bot, "web_runner"):
-            upload_app = create_uploader_app()
-            runner = web.AppRunner(upload_app)
-            await runner.setup()
-            site = web.TCPSite(runner, HTTP_HOST, HTTP_PORT)
-            await site.start()
-            bot.web_runner = runner
-            print(f"HTTP server started on {HTTP_HOST}:{HTTP_PORT}")
+        if ENABLE_UPLOAD_SERVER:
+            if not hasattr(bot, "web_runner"):
+                upload_app = create_uploader_app()
+                runner = web.AppRunner(upload_app)
+                await runner.setup()
+                site = web.TCPSite(runner, HTTP_HOST, HTTP_PORT)
+                await site.start()
+                bot.web_runner = runner
+                print(f"HTTP server started on {HTTP_HOST}:{HTTP_PORT}")
+        elif not UPLOAD_SERVER_DISABLED_LOGGED:
+            print("Skipping embedded upload server (ENABLE_UPLOAD_SERVER=0)")
+            UPLOAD_SERVER_DISABLED_LOGGED = True
 
-        if not hasattr(bot, "listing_runner"):
-            listing_app = create_listing_app()
-            listing_runner = web.AppRunner(listing_app)
-            await listing_runner.setup()
-            listing_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LISTING_PORT)
-            await listing_site.start()
-            bot.listing_site = listing_site
-            if HTTP_LOGIN_PORT != HTTP_LISTING_PORT:
-                login_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LOGIN_PORT)
-                await login_site.start()
-                bot.login_site = login_site
-                print(f"Login page server started on {HTTP_HOST}:{HTTP_LOGIN_PORT}")
-            bot.listing_runner = listing_runner
-            print(f"Listing server started on {HTTP_HOST}:{HTTP_LISTING_PORT}")
+        if ENABLE_LISTING_SERVER:
+            if not hasattr(bot, "listing_runner"):
+                listing_app = create_listing_app()
+                listing_runner = web.AppRunner(listing_app)
+                await listing_runner.setup()
+                listing_site = web.TCPSite(
+                    listing_runner, HTTP_HOST, HTTP_LISTING_PORT
+                )
+                await listing_site.start()
+                bot.listing_site = listing_site
+                if HTTP_LOGIN_PORT != HTTP_LISTING_PORT:
+                    login_site = web.TCPSite(
+                        listing_runner, HTTP_HOST, HTTP_LOGIN_PORT
+                    )
+                    await login_site.start()
+                    bot.login_site = login_site
+                    print(
+                        f"Login page server started on {HTTP_HOST}:{HTTP_LOGIN_PORT}"
+                    )
+                bot.listing_runner = listing_runner
+                print(f"Listing server started on {HTTP_HOST}:{HTTP_LISTING_PORT}")
+        elif not LISTING_SERVER_DISABLED_LOGGED:
+            print("Skipping listing/login server (ENABLE_LISTING_SERVER=0)")
+            LISTING_SERVER_DISABLED_LOGGED = True
 
         try:
             synced = await bot.tree.sync()
