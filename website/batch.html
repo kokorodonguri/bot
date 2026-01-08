@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>まとめてダウンロード</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+        <style>
+            :root {
+                color-scheme: light;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+                background: radial-gradient(circle at 20% 20%, #eef2ff, #f7fafc 50%),
+                    radial-gradient(circle at 80% 0%, #e6fffa, #f8fafc 40%),
+                    #f8fafc;
+                min-height: 100vh;
+                padding: 24px;
+                color: #1a202c;
+            }
+            .page {
+                max-width: 960px;
+                margin: 0 auto;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-bottom: 18px;
+            }
+            .title {
+                font-size: 24px;
+                font-weight: 800;
+                color: #2d3748;
+            }
+            .subtitle {
+                color: #4a5568;
+                font-size: 13px;
+            }
+            .actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                border: none;
+                font-weight: 700;
+                font-size: 14px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.2s ease;
+            }
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+            }
+            .btn-primary:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 32px rgba(102, 126, 234, 0.35);
+            }
+            .btn-success {
+                background: linear-gradient(135deg, #2dce89, #38a169);
+                color: white;
+                box-shadow: 0 10px 30px rgba(56, 161, 105, 0.25);
+            }
+            .btn-success:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 32px rgba(56, 161, 105, 0.35);
+            }
+            .btn-secondary {
+                background: #fff;
+                color: #2d3748;
+                border: 1px solid #e2e8f0;
+            }
+            .btn:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .card {
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                border-radius: 14px;
+                padding: 16px;
+                margin-bottom: 12px;
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+            }
+            .file-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 12px;
+            }
+            .file-card {
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 12px;
+                background: #fdfdff;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .file-name {
+                font-weight: 700;
+                color: #2d3748;
+                word-break: break-all;
+            }
+            .file-meta {
+                font-size: 12px;
+                color: #4a5568;
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 6px 10px;
+                border-radius: 999px;
+                background: #edf2ff;
+                color: #4338ca;
+                font-weight: 700;
+                font-size: 12px;
+                border: 1px solid #e2e8f0;
+            }
+            .file-actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .status {
+                padding: 12px;
+                border-radius: 10px;
+                background: #edf2ff;
+                color: #2c5282;
+                border: 1px dashed #c3dafe;
+                margin-bottom: 12px;
+                font-size: 13px;
+            }
+            .status.error {
+                background: #fff5f5;
+                border-color: #fed7d7;
+                color: #9b2c2c;
+            }
+            .empty {
+                text-align: center;
+                color: #718096;
+                padding: 40px 12px;
+                border: 1px dashed #e2e8f0;
+                border-radius: 12px;
+                background: #fff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page">
+            <div class="header">
+                <div>
+                    <div class="title">📦 まとめてダウンロード</div>
+                    <div class="subtitle" id="subtitle">
+                        読み込み中...
+                    </div>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-secondary" href="/">⤴ アップロードへ</a>
+                    <button class="btn btn-primary" id="copyLinkBtn" type="button">
+                        🔗 ページリンクをコピー
+                    </button>
+                    <button class="btn btn-success" id="zipBtn" type="button" disabled>
+                        ⏬ ZIP で一括ダウンロード
+                    </button>
+                </div>
+            </div>
+
+            <div class="status" id="status">ファイル情報を取得しています...</div>
+            <div class="status error" id="error" hidden></div>
+
+            <div class="card">
+                <div class="file-list" id="fileList"></div>
+                <div class="empty" id="empty" hidden>
+                    トークンが指定されていないか、ファイルが見つかりませんでした。
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API_BASE = "/api";
+            const fileList = document.getElementById("fileList");
+            const statusEl = document.getElementById("status");
+            const errorEl = document.getElementById("error");
+            const emptyEl = document.getElementById("empty");
+            const subtitle = document.getElementById("subtitle");
+            const zipBtn = document.getElementById("zipBtn");
+            const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+            const uniq = (arr) => {
+                const seen = new Set();
+                return arr.filter((item) => {
+                    if (seen.has(item)) return false;
+                    seen.add(item);
+                    return true;
+                });
+            };
+
+            const getTokens = () => {
+                const params = new URLSearchParams(window.location.search);
+                const raw = params.get("tokens");
+                if (!raw) return [];
+                return uniq(
+                    raw
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter(Boolean),
+                );
+            };
+
+            const formatSize = (bytes) => {
+                if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+                const units = ["B", "KB", "MB", "GB", "TB"];
+                const exp = Math.min(
+                    Math.floor(Math.log(bytes) / Math.log(1024)),
+                    units.length - 1,
+                );
+                const value = bytes / 1024 ** exp;
+                const rounded = value.toFixed(value >= 10 || exp === 0 ? 0 : 1);
+                return `${rounded} ${units[exp]}`;
+            };
+
+            const renderFiles = (files) => {
+                fileList.innerHTML = "";
+                if (!files.length) {
+                    emptyEl.hidden = false;
+                    return;
+                }
+                emptyEl.hidden = true;
+                files.forEach((file) => {
+                    const card = document.createElement("div");
+                    card.className = "file-card";
+
+                    const name = document.createElement("div");
+                    name.className = "file-name";
+                    name.textContent = file.filename || file.token;
+                    card.appendChild(name);
+
+                    const meta = document.createElement("div");
+                    meta.className = "file-meta";
+                    const size = document.createElement("span");
+                    size.className = "pill";
+                    size.textContent = file.size_readable || "-";
+                    const uploaded = document.createElement("span");
+                    uploaded.textContent = file.uploaded_at || "-";
+                    meta.append(size, uploaded);
+                    card.appendChild(meta);
+
+                    const actions = document.createElement("div");
+                    actions.className = "file-actions";
+
+                    const openBtn = document.createElement("a");
+                    openBtn.className = "btn btn-secondary";
+                    openBtn.href = file.base_url;
+                    openBtn.target = "_blank";
+                    openBtn.rel = "noopener";
+                    openBtn.textContent = "ページを開く";
+
+                    const dlBtn = document.createElement("a");
+                    dlBtn.className = "btn btn-primary";
+                    dlBtn.href = file.download_url;
+                    dlBtn.textContent = "直接ダウンロード";
+                    dlBtn.download = file.filename || "file";
+
+                    actions.append(openBtn, dlBtn);
+                    card.appendChild(actions);
+
+                    fileList.appendChild(card);
+                });
+            };
+
+            const tokens = getTokens();
+            subtitle.textContent = tokens.length
+                ? `${tokens.length} 件のファイル`
+                : "URL パラメータ tokens=token1,token2... を指定してください";
+
+            copyLinkBtn.addEventListener("click", async () => {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    statusEl.textContent = "ページリンクをコピーしました";
+                    statusEl.classList.remove("error");
+                } catch (err) {
+                    statusEl.textContent = "コピーに失敗しました";
+                    statusEl.classList.add("error");
+                }
+            });
+
+            const downloadZip = async () => {
+                zipBtn.disabled = true;
+                statusEl.textContent = "ZIP を作成しています...";
+                try {
+                    const response = await fetch(API_BASE + "/download/zip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ tokens }),
+                    });
+                    if (!response.ok) {
+                        let message = "ZIPの作成に失敗しました";
+                        try {
+                            const data = await response.json();
+                            if (data.error) message = data.error;
+                        } catch (err) {
+                            const text = await response.text();
+                            if (text) message = text;
+                        }
+                        throw new Error(message);
+                    }
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download =
+                        tokens.length === 1
+                            ? "download.zip"
+                            : `download-${tokens.length}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    statusEl.textContent = "ZIP をダウンロードしました";
+                } catch (err) {
+                    statusEl.textContent = err.message || "ZIPの作成に失敗しました";
+                    statusEl.classList.add("error");
+                } finally {
+                    zipBtn.disabled = false;
+                }
+            };
+
+            zipBtn.addEventListener("click", () => {
+                if (!tokens.length) {
+                    statusEl.textContent = "トークンが指定されていません";
+                    statusEl.classList.add("error");
+                    return;
+                }
+                downloadZip();
+            });
+
+            const load = async () => {
+                if (!tokens.length) {
+                    statusEl.hidden = true;
+                    emptyEl.hidden = false;
+                    zipBtn.disabled = true;
+                    return;
+                }
+                try {
+                    const results = await Promise.all(
+                        tokens.map(async (token) => {
+                            const res = await fetch(
+                                `${API_BASE}/file/${encodeURIComponent(token)}`,
+                            );
+                            if (!res.ok) return null;
+                            return res.json();
+                        }),
+                    );
+                    const files = results.filter(Boolean);
+                    renderFiles(files);
+                    statusEl.textContent = files.length
+                        ? "ファイルを読み込みました"
+                        : "ファイルが見つかりませんでした";
+                    if (!files.length) {
+                        emptyEl.hidden = false;
+                        zipBtn.disabled = true;
+                    } else {
+                        zipBtn.disabled = false;
+                        const totalSize = files.reduce(
+                            (acc, file) => acc + (file.size || 0),
+                            0,
+                        );
+                        subtitle.textContent = `${files.length} 件のファイル / 合計 ${formatSize(totalSize)}`;
+                    }
+                } catch (err) {
+                    statusEl.hidden = true;
+                    errorEl.hidden = false;
+                    errorEl.textContent =
+                        err?.message || "ファイル情報の取得に失敗しました";
+                    zipBtn.disabled = true;
+                }
+            };
+
+            load();
+        </script>
+    </body>
+</html>

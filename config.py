@@ -18,6 +18,7 @@ def _env_flag(name: str, default: bool = True) -> bool:
         return default
     return value.strip().lower() not in {"0", "false", "off", "no"}
 
+
 ROOT = pathlib.Path(__file__).parent
 WEBSITE_DIR = ROOT / "website"
 UPLOAD_DIR = ROOT / "uploads"
@@ -25,6 +26,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_PATH = ROOT / "file_index.json"
 UPLOAD_PAGE = WEBSITE_DIR / "upload.html"
 DOWNLOAD_PAGE = WEBSITE_DIR / "download.html"
+BATCH_PAGE = WEBSITE_DIR / "batch.html"
 PREVIEW_TEMPLATE = WEBSITE_DIR / "preview.html"
 LISTING_PAGE = WEBSITE_DIR / "listing.html"
 LISTING_NOT_FOUND_PAGE = WEBSITE_DIR / "listing_not_found.html"

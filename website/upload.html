@@ -184,6 +184,286 @@
                 background: #764ba2;
             }
 
+            .queue-container {
+                margin-top: 24px;
+                background: #f8f9ff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .queue-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .queue-title {
+                font-weight: 700;
+                color: #333;
+                font-size: 16px;
+            }
+
+            .queue-hint {
+                color: #777;
+                font-size: 12px;
+            }
+
+            .queue-count {
+                background: #667eea;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 700;
+                min-width: 48px;
+                text-align: center;
+            }
+
+            .queue-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .queue-empty {
+                text-align: center;
+                color: #888;
+                font-size: 12px;
+                padding: 14px 10px;
+                border: 1px dashed #d5d9ff;
+                border-radius: 8px;
+                background: #fff;
+            }
+
+            .queue-item {
+                border: 1px solid #e5e7eb;
+                border-left: 4px solid #667eea;
+                border-radius: 10px;
+                padding: 12px;
+                background: white;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+                transition:
+                    transform 0.15s ease,
+                    border-color 0.2s ease;
+            }
+
+            .queue-item:hover {
+                transform: translateY(-2px);
+            }
+
+            .queue-item.success {
+                border-left-color: #28a745;
+            }
+
+            .queue-item.error {
+                border-left-color: #dc3545;
+            }
+
+            .queue-item.canceled {
+                border-left-color: #999;
+                opacity: 0.85;
+            }
+
+            .queue-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .queue-meta {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                min-width: 0;
+            }
+
+            .file-name {
+                font-weight: 700;
+                color: #333;
+                word-break: break-all;
+            }
+
+            .file-size {
+                color: #666;
+                font-size: 12px;
+            }
+
+            .file-status {
+                font-size: 12px;
+                color: #666;
+            }
+
+            .queue-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .queue-actions .cancel-button,
+            .queue-actions .download-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .copy-all-button {
+                background: linear-gradient(135deg, #667eea, #5a67d8);
+                border: none;
+                font-weight: 700;
+                letter-spacing: 0.2px;
+                padding: 10px 16px;
+                box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .copy-all-button:hover:not(:disabled) {
+                background: linear-gradient(135deg, #5a67d8, #4c51bf);
+                box-shadow: 0 8px 22px rgba(90, 103, 216, 0.45);
+            }
+
+            .copy-all-button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                box-shadow: none;
+                filter: saturate(0.9);
+            }
+
+            .share-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: flex-end;
+                align-items: center;
+            }
+
+            .zip-button {
+                background: linear-gradient(135deg, #2dce89, #38a169);
+                border: none;
+                font-weight: 700;
+                letter-spacing: 0.2px;
+                padding: 10px 16px;
+                box-shadow: 0 6px 18px rgba(56, 161, 105, 0.35);
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .zip-button:hover:not(:disabled) {
+                background: linear-gradient(135deg, #2f855a, #276749);
+                box-shadow: 0 8px 22px rgba(56, 161, 105, 0.45);
+            }
+
+            .zip-button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                box-shadow: none;
+                filter: saturate(0.9);
+            }
+
+            .share-panel {
+                margin-top: 16px;
+                padding: 14px 16px;
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+                flex-wrap: wrap;
+            }
+
+            .share-title {
+                font-weight: 700;
+                color: #333;
+            }
+
+            .share-hint {
+                color: #666;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+
+            .copy-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 26px;
+                height: 22px;
+                padding: 0 8px;
+                margin-left: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .share-links {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 10px;
+                margin-bottom: 6px;
+            }
+
+            .share-link {
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .share-link a {
+                word-break: break-all;
+                font-size: 12px;
+                color: #1f3bb3;
+                line-height: 1.4;
+                text-decoration: none;
+            }
+
+            .share-link a:hover {
+                text-decoration: underline;
+            }
+
+            .share-link .download-button {
+                flex-shrink: 0;
+            }
+
+            .share-link-anchor {
+                word-break: break-all;
+                color: #1f3bb3;
+                text-decoration: none;
+            }
+
+            .share-link-anchor:hover {
+                text-decoration: underline;
+            }
+
+            .queue-link-box {
+                display: none !important;
+            }
+
+            .queue-item .progress-bar {
+                margin-top: 10px;
+            }
+
+            .queue-item .progress-text {
+                margin-top: 6px;
+            }
+
             .progress-container {
                 margin-top: 20px;
                 display: none;
@@ -405,30 +685,62 @@
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">
-                        ファイルを選んでファイルを共有
+                        ファイルをまとめてドラッグ＆ドロップ
                     </div>
                     <button class="upload-button" id="selectButton">
                         ファイルを選択
                     </button>
-                    <input type="file" id="fileInput" />
+                    <input type="file" id="fileInput" multiple />
                 </div>
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
+                <div class="queue-container">
+                    <div class="queue-header">
+                        <div>
+                            <div class="queue-title">アップロードキュー</div>
+                            <div class="queue-hint">
+                                複数ファイルを一度に追加できます
+                            </div>
+                        </div>
+                        <div class="queue-count" id="queueCount">0件</div>
                     </div>
-                    <div class="progress-text" id="progressText">0%</div>
-                    <div class="progress-actions">
-                        <button
-                            class="cancel-button"
-                            id="cancelButton"
-                            type="button"
-                            disabled
-                        >
-                            アップロードをキャンセル
-                        </button>
+                    <div class="share-panel" id="sharePanel">
+                        <div>
+                            <div class="share-title">共有リンク</div>
+                            <div class="share-hint" id="shareHint">
+                                アップロード完了後にここへリンクが並びます
+                            </div>
+                        </div>
+                        <div class="share-actions">
+                            <button
+                                class="download-button copy-all-button"
+                                id="openBatchButton"
+                                type="button"
+                                disabled
+                            >
+                                🔗 まとめページを開く
+                                <span class="copy-badge" id="copyCountBadge"
+                                    >0</span
+                                >
+                            </button>
+                            <button
+                                class="download-button zip-button"
+                                id="downloadAllButton"
+                                type="button"
+                                disabled
+                            >
+                                📦 ZIP でダウンロード
+                                <span class="copy-badge" id="zipCountBadge"
+                                    >0</span
+                                >
+                            </button>
+                        </div>
+                    </div>
+                    <div class="share-links" id="shareLinks"></div>
+                    <div class="queue-list" id="queueList">
+                        <div class="queue-empty" id="queueEmpty">
+                            まだファイルが選択されていません
+                        </div>
                     </div>
                 </div>
-                <div class="upload-result" id="uploadResult"></div>
                 <div class="preview-container" id="previewContainer">
                     <div class="preview-header">
                         プレビュー
@@ -470,51 +782,444 @@
             const uploadArea = document.getElementById("uploadArea");
             const fileInput = document.getElementById("fileInput");
             const selectButton = document.getElementById("selectButton");
-            const progressContainer =
-                document.getElementById("progressContainer");
-            const progressFill = document.getElementById("progressFill");
-            const progressText = document.getElementById("progressText");
-            const uploadResult = document.getElementById("uploadResult");
+            const openBatchButton = document.getElementById("openBatchButton");
+            const downloadAllButton =
+                document.getElementById("downloadAllButton");
             const errorContainer = document.getElementById("errorContainer");
             const successContainer =
                 document.getElementById("successContainer");
-            const cancelButton = document.getElementById("cancelButton");
-            let currentUpload = null;
+            const queueList = document.getElementById("queueList");
+            const queueEmpty = document.getElementById("queueEmpty");
+            const queueCount = document.getElementById("queueCount");
+            const shareLinks = document.getElementById("shareLinks");
+            const shareHint = document.getElementById("shareHint");
+            const copyCountBadge = document.getElementById("copyCountBadge");
+            const zipCountBadge = document.getElementById("zipCountBadge");
 
-            function resetProgressUI() {
-                progressFill.style.width = "0%";
-                progressText.textContent = "0%";
-            }
+            const uploadQueue = [];
+            const STATE_CLASSES = [
+                "pending",
+                "uploading",
+                "success",
+                "error",
+                "canceled",
+            ];
+            let currentUploadItem = null;
 
-            function showProgressUI() {
-                progressContainer.style.display = "block";
-                resetProgressUI();
-                if (cancelButton) {
-                    cancelButton.disabled = false;
-                    cancelButton.textContent = "アップロードをキャンセル";
+            const formatBytes = (bytes) => {
+                if (!bytes || bytes <= 0) return "0 B";
+                const units = ["B", "KB", "MB", "GB", "TB"];
+                const exponent = Math.min(
+                    Math.floor(Math.log(bytes) / Math.log(1024)),
+                    units.length - 1,
+                );
+                const value = bytes / 1024 ** exponent;
+                const rounded = value.toFixed(
+                    value >= 10 || exponent === 0 ? 0 : 1,
+                );
+                return `${rounded} ${units[exponent]}`;
+            };
+
+            const readyLinks = () =>
+                uploadQueue
+                    .filter(
+                        (item) =>
+                            item.state === "success" &&
+                            item.linkAnchor.textContent.trim() &&
+                            item.linkAnchor.href &&
+                            !item.linkAnchor.href.endsWith("#"),
+                    )
+                    .map((item) => item.linkAnchor.href.trim())
+                    .filter(Boolean);
+
+            const readyTokens = () => {
+                const seen = new Set();
+                return uploadQueue
+                    .filter((item) => item.state === "success" && item.token)
+                    .map((item) => item.token)
+                    .filter((token) => {
+                        if (seen.has(token)) return false;
+                        seen.add(token);
+                        return true;
+                    });
+            };
+
+            const renderShareArea = () => {
+                if (!shareLinks || !shareHint) return;
+                shareLinks.innerHTML = "";
+                const links = readyLinks();
+                const tokens = readyTokens();
+
+                if (openBatchButton) {
+                    openBatchButton.disabled = tokens.length === 0;
+                    openBatchButton.title = tokens.length
+                        ? "まとめダウンロードページを開く"
+                        : "アップロード完了後に利用できます";
                 }
-            }
-
-            function hideProgressUI() {
-                progressContainer.style.display = "none";
-                resetProgressUI();
-                if (cancelButton) {
-                    cancelButton.disabled = true;
-                    cancelButton.textContent = "アップロードをキャンセル";
+                if (copyCountBadge) {
+                    copyCountBadge.textContent = tokens.length.toString();
                 }
-            }
-
-            cancelButton?.addEventListener("click", () => {
-                if (currentUpload) {
-                    cancelButton.disabled = true;
-                    cancelButton.textContent = "キャンセルしています...";
-                    currentUpload.abort();
+                if (downloadAllButton) {
+                    downloadAllButton.disabled = tokens.length === 0;
+                    downloadAllButton.title = tokens.length
+                        ? "アップロード済みのファイルをまとめてダウンロード"
+                        : "アップロード完了後に利用できます";
                 }
-            });
+                if (zipCountBadge) {
+                    zipCountBadge.textContent = tokens.length.toString();
+                }
+
+                if (!links.length) {
+                    shareHint.textContent =
+                        "アップロード完了後にここへリンクが並びます";
+                    return;
+                }
+
+                shareHint.textContent = `${links.length}件のリンクをまとめて確認 / ZIPダウンロードできます`;
+                links.forEach((url) => {
+                    const row = document.createElement("div");
+                    row.className = "share-link";
+                    const anchor = document.createElement("a");
+                    anchor.href = url;
+                    anchor.target = "_blank";
+                    anchor.rel = "noopener";
+                    anchor.textContent = url;
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "download-button";
+                    btn.textContent = "コピー";
+                    btn.dataset.url = url;
+                    btn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        copyUrlToClipboard(btn);
+                    });
+                    row.append(anchor, btn);
+                    shareLinks.appendChild(row);
+                });
+            };
+
+            renderShareArea();
+
+            const updateQueueMeta = () => {
+                const hasItem =
+                    queueList && queueList.querySelector(".queue-item");
+                if (queueEmpty) {
+                    queueEmpty.style.display = hasItem ? "none" : "block";
+                }
+                if (queueCount) {
+                    const total = queueList
+                        ? Array.from(
+                              queueList.querySelectorAll(".queue-item"),
+                          ).filter((el) => !el.classList.contains("canceled"))
+                              .length
+                        : 0;
+                    queueCount.textContent = `${total}件`;
+                }
+                renderShareArea();
+            };
+
+            const setState = (item, state, text) => {
+                STATE_CLASSES.forEach((cls) =>
+                    item.element.classList.remove(cls),
+                );
+                item.element.classList.add(state);
+                item.state = state;
+                if (text) {
+                    item.statusText.textContent = text;
+                }
+                item.cancelButton.disabled = [
+                    "success",
+                    "error",
+                    "canceled",
+                ].includes(state);
+            };
+
+            const createQueueItem = (file) => {
+                const container = document.createElement("div");
+                container.className = "queue-item pending";
+
+                const row = document.createElement("div");
+                row.className = "queue-row";
+
+                const meta = document.createElement("div");
+                meta.className = "queue-meta";
+
+                const name = document.createElement("div");
+                name.className = "file-name";
+                name.textContent = file.name;
+
+                const size = document.createElement("div");
+                size.className = "file-size";
+                size.textContent = formatBytes(file.size);
+
+                meta.appendChild(name);
+                meta.appendChild(size);
+
+                const actions = document.createElement("div");
+                actions.className = "queue-actions";
+
+                const previewBtn = document.createElement("button");
+                previewBtn.type = "button";
+                previewBtn.className = "download-button";
+                previewBtn.textContent = "プレビュー";
+
+                const cancelBtn = document.createElement("button");
+                cancelBtn.type = "button";
+                cancelBtn.className = "cancel-button";
+                cancelBtn.textContent = "キャンセル";
+
+                actions.appendChild(previewBtn);
+                actions.appendChild(cancelBtn);
+
+                row.appendChild(meta);
+                row.appendChild(actions);
+
+                const progressBar = document.createElement("div");
+                progressBar.className = "progress-bar";
+                const progressFill = document.createElement("div");
+                progressFill.className = "progress-fill";
+                progressBar.appendChild(progressFill);
+
+                const statusRow = document.createElement("div");
+                statusRow.className = "queue-row";
+                const statusText = document.createElement("div");
+                statusText.className = "file-status progress-text";
+                statusText.textContent = "待機中";
+                statusRow.appendChild(statusText);
+
+                const linkBox = document.createElement("div");
+                linkBox.className = "download-url queue-link-box";
+                const linkAnchor = document.createElement("a");
+                linkAnchor.href = "#";
+                linkAnchor.target = "_blank";
+                linkAnchor.rel = "noopener";
+                linkAnchor.textContent = "";
+                linkAnchor.className = "share-link-anchor";
+                const copyButton = document.createElement("button");
+                copyButton.type = "button";
+                copyButton.className = "download-button";
+                copyButton.textContent = "コピー";
+                copyButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    copyUrlToClipboard(copyButton);
+                });
+                linkAnchor.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                });
+                linkBox.appendChild(linkAnchor);
+                linkBox.appendChild(copyButton);
+
+                const item = {
+                    file,
+                    element: container,
+                    progressFill,
+                    statusText,
+                    linkBox,
+                    linkAnchor,
+                    copyButton,
+                    token: null,
+                    cancelButton: cancelBtn,
+                    state: "pending",
+                    xhr: null,
+                };
+
+                previewBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    showPreview(file);
+                });
+
+                cancelBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    cancelUpload(item);
+                });
+
+                container.appendChild(row);
+                container.appendChild(progressBar);
+                container.appendChild(statusRow);
+                container.appendChild(linkBox);
+
+                return item;
+            };
+
+            const startNextUpload = () => {
+                if (currentUploadItem) return;
+                const next = uploadQueue.find(
+                    (entry) => entry.state === "pending",
+                );
+                if (!next) return;
+                uploadFile(next);
+            };
+
+            const cancelUpload = (item) => {
+                if (["success", "error", "canceled"].includes(item.state)) {
+                    return;
+                }
+                setState(item, "canceled", "アップロードをキャンセルしました");
+                if (item === currentUploadItem && item.xhr) {
+                    item.xhr.abort();
+                    item.xhr = null;
+                    currentUploadItem = null;
+                    startNextUpload();
+                    return;
+                }
+                updateQueueMeta();
+                startNextUpload();
+            };
+
+            const uploadFile = (item) => {
+                const formData = new FormData();
+                formData.append("file", item.file);
+
+                item.progressFill.style.width = "0%";
+                item.linkBox.style.display = "none";
+                item.linkAnchor.textContent = "";
+                item.linkAnchor.href = "#";
+                item.copyButton.dataset.url = "";
+
+                setState(item, "uploading", "アップロード中...");
+                currentUploadItem = item;
+
+                const xhr = new XMLHttpRequest();
+                item.xhr = xhr;
+
+                xhr.upload.addEventListener("progress", (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        item.progressFill.style.width = `${percent}%`;
+                        item.statusText.textContent = `アップロード中... ${percent}%`;
+                    }
+                });
+
+                xhr.addEventListener("load", () => {
+                    let response = {};
+                    try {
+                        response = JSON.parse(xhr.responseText || "{}");
+                    } catch (e) {
+                        response = {};
+                    }
+                    if (xhr.status === 200 && response.url) {
+                        item.progressFill.style.width = "100%";
+                        setState(item, "success", "アップロード完了");
+                        item.linkAnchor.textContent = response.url;
+                        item.linkAnchor.href = response.url;
+                        item.copyButton.dataset.url = response.url;
+                        item.token = response.token;
+                        showSuccess(
+                            `「${item.file.name}」をアップロードしました`,
+                        );
+                    } else {
+                        const message =
+                            response.error || `アップロード失敗: ${xhr.status}`;
+                        setState(item, "error", message);
+                        showError(message);
+                    }
+                });
+
+                xhr.addEventListener("error", () => {
+                    setState(item, "error", "ネットワークエラーが発生しました");
+                    showError("ネットワークエラーが発生しました");
+                });
+
+                xhr.addEventListener("abort", () => {
+                    setState(
+                        item,
+                        "canceled",
+                        "アップロードをキャンセルしました",
+                    );
+                });
+
+                xhr.addEventListener("loadend", () => {
+                    if (item === currentUploadItem) {
+                        currentUploadItem = null;
+                    }
+                    item.xhr = null;
+                    updateQueueMeta();
+                    startNextUpload();
+                });
+
+                xhr.open("POST", API_BASE + "/upload");
+                xhr.send(formData);
+            };
+
+            const addFiles = (fileList) => {
+                const files = Array.from(fileList || []);
+                if (!files.length) return;
+                files.forEach((file, index) => {
+                    const item = createQueueItem(file);
+                    uploadQueue.push(item);
+                    queueList.appendChild(item.element);
+                    if (files.length === 1 && index === 0) {
+                        showPreview(file);
+                    }
+                });
+                updateQueueMeta();
+                startNextUpload();
+                fileInput.value = "";
+            };
 
             // Event listeners for file selection
             selectButton.addEventListener("click", () => fileInput.click());
-            fileInput.addEventListener("change", handleFileSelect);
+            fileInput.addEventListener("change", () =>
+                addFiles(fileInput.files),
+            );
+
+            openBatchButton?.addEventListener("click", () => {
+                const tokens = readyTokens();
+                if (!tokens.length) {
+                    showError("まとめてダウンロードできるファイルがありません");
+                    return;
+                }
+                const params = new URLSearchParams();
+                params.set("tokens", tokens.join(","));
+                const url = `${window.location.origin}/batch?${params.toString()}`;
+                window.open(url, "_blank", "noopener");
+                showSuccess("まとめページを開きます");
+            });
+
+            downloadAllButton?.addEventListener("click", async () => {
+                const tokens = readyTokens();
+                if (!tokens.length) {
+                    showError("まとめてダウンロードできるファイルがありません");
+                    return;
+                }
+                downloadAllButton.disabled = true;
+                try {
+                    const response = await fetch(API_BASE + "/download/zip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ tokens }),
+                    });
+                    if (!response.ok) {
+                        let message = "ZIPの作成に失敗しました";
+                        try {
+                            const data = await response.json();
+                            message = data.error || message;
+                        } catch (e) {
+                            const text = await response.text();
+                            if (text) message = text;
+                        }
+                        showError(message);
+                        return;
+                    }
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download =
+                        tokens.length === 1
+                            ? "download.zip"
+                            : `download-${tokens.length}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    showSuccess("ZIP をダウンロードしました");
+                } catch (err) {
+                    showError("ZIPのダウンロード中にエラーが発生しました");
+                } finally {
+                    downloadAllButton.disabled = false;
+                }
+            });
 
             // Drag and drop events
             uploadArea.addEventListener("dragover", (e) => {
@@ -531,126 +1236,9 @@
                 uploadArea.classList.remove("dragover");
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
-                    fileInput.files = files;
-                    handleFileSelect();
+                    addFiles(files);
                 }
             });
-
-            function handleFileSelect() {
-                const file = fileInput.files[0];
-                if (!file) return;
-                if (currentUpload) {
-                    showError(
-                        "アップロード中です。キャンセルしてから別のファイルを選択してください。",
-                    );
-                    fileInput.value = "";
-                    return;
-                }
-
-                // Show preview
-                showPreview(file);
-
-                uploadFile(file);
-                fileInput.value = "";
-            }
-
-            async function uploadFile(file) {
-                const formData = new FormData();
-                formData.append("file", file);
-
-                showProgressUI();
-                uploadResult.style.display = "none";
-                uploadResult.innerHTML = "";
-
-                try {
-                    const xhr = new XMLHttpRequest();
-                    currentUpload = xhr;
-
-                    xhr.upload.addEventListener("progress", (e) => {
-                        if (e.lengthComputable) {
-                            const percent = Math.round(
-                                (e.loaded / e.total) * 100,
-                            );
-                            progressFill.style.width = percent + "%";
-                            progressText.textContent = percent + "%";
-                        }
-                    });
-
-                    xhr.addEventListener("load", () => {
-                        if (xhr.status === 200) {
-                            const response = JSON.parse(xhr.responseText);
-                            showSuccess(
-                                `ファイルをアップロードしました: ${file.name}`,
-                            );
-                            const url = response.url;
-                            const discordUrl =
-                                url +
-                                (url.includes("?") ? "&" : "?") +
-                                "preview=1";
-                            showUploadResult(
-                                "success",
-                                `<strong>${file.name}</strong> がアップロードされました。<br><br>
-                            <div class="download-url">
-                                <span>${url}</span>
-                                <button class="download-button" onclick="copyUrlToClipboard(this)">コピー</button>
-                            </div>
-                            </div>`,
-                            );
-                            const btns =
-                                uploadResult.querySelectorAll(
-                                    ".download-button",
-                                );
-                            if (btns[0]) btns[0].dataset.url = url;
-                            if (btns[1]) btns[1].dataset.url = discordUrl;
-                            hideProgressUI();
-                        } else {
-                            const response = JSON.parse(xhr.responseText);
-                            showError(
-                                `アップロード失敗: ${response.error || xhr.status}`,
-                            );
-                            showUploadResult(
-                                "error",
-                                `エラーが発生しました: ${response.error}`,
-                            );
-                            hideProgressUI();
-                        }
-                    });
-
-                    xhr.addEventListener("error", () => {
-                        showError("ネットワークエラーが発生しました");
-                        showUploadResult(
-                            "error",
-                            "ネットワークエラーが発生しました",
-                        );
-                        hideProgressUI();
-                    });
-
-                    xhr.addEventListener("abort", () => {
-                        hideProgressUI();
-                        uploadResult.style.display = "none";
-                        showError("アップロードをキャンセルしました");
-                    });
-
-                    xhr.addEventListener("loadend", () => {
-                        if (currentUpload === xhr) {
-                            currentUpload = null;
-                        }
-                    });
-
-                    xhr.open("POST", API_BASE + "/upload");
-                    xhr.send(formData);
-                } catch (error) {
-                    showError(`エラー: ${error.message}`);
-                    hideProgressUI();
-                    currentUpload = null;
-                }
-            }
-
-            function showUploadResult(type, message) {
-                uploadResult.className = `upload-result ${type}`;
-                uploadResult.innerHTML = message;
-                uploadResult.style.display = "block";
-            }
 
             function showError(message) {
                 errorContainer.innerHTML = `<div class="error-message">${message}</div>`;

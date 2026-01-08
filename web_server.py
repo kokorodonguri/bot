@@ -6,8 +6,11 @@ import hmac
 import json
 import mimetypes
 import os
+import tempfile
 import time
 import uuid
+import zipfile
+from pathlib import Path
 from typing import Dict, List
 from urllib.parse import splitport, unquote, urlencode
 
@@ -15,6 +18,7 @@ from aiohttp import web
 
 from config import (
     ASSETS_DIR,
+    BATCH_PAGE,
     DOWNLOAD_PAGE,
     HTTP_HOST,
     HTTP_LISTING_PORT,
@@ -107,6 +111,16 @@ def load_file_credentials() -> list[tuple[str, str]]:
         if username and password:
             records.append((str(username), str(password)))
     return records
+
+
+def save_file_credentials(credentials: list[tuple[str, str]]) -> None:
+    LISTING_CREDENTIALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "users": [{"username": user, "password": pwd} for user, pwd in credentials]
+    }
+    LISTING_CREDENTIALS_FILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def refresh_allowed_users() -> None:
@@ -301,6 +315,13 @@ def create_uploader_app() -> web.Application:
             )
         return web.Response(text="upload.html not found", status=404)
 
+    async def handle_batch_page(request: web.Request):
+        if BATCH_PAGE.exists():
+            return web.FileResponse(
+                BATCH_PAGE, headers={"Content-Type": "text/html; charset=utf-8"}
+            )
+        return web.Response(text="batch.html not found", status=404)
+
     async def handle_upload(request: web.Request):
         reader = await request.multipart()
         field = await reader.next()
@@ -466,6 +487,102 @@ def create_uploader_app() -> web.Application:
             }
         )
 
+    async def handle_zip_download(request: web.Request):
+        tokens: list[str] = []
+        if request.can_read_body:
+            with contextlib.suppress(Exception):
+                body = await request.json()
+                if isinstance(body, dict):
+                    candidates = body.get("tokens")
+                    if isinstance(candidates, list):
+                        tokens = [
+                            str(token).strip()
+                            for token in candidates
+                            if str(token).strip()
+                        ]
+        if not tokens:
+            query_tokens = request.query.get("tokens")
+            if query_tokens:
+                tokens = [t.strip() for t in query_tokens.split(",") if t.strip()]
+
+        # dedupe while preserving order
+        seen: set[str] = set()
+        tokens = [t for t in tokens if not (t in seen or seen.add(t))]
+
+        if not tokens:
+            return web.json_response({"error": "tokens required"}, status=400)
+
+        index = load_index()
+        files: list[tuple[str, dict, Path]] = []
+        for token in tokens:
+            meta = index.get(token)
+            if not meta:
+                continue
+            path = UPLOAD_DIR / meta["saved_name"]
+            if path.exists():
+                files.append((token, meta, path))
+
+        if not files:
+            return web.json_response(
+                {"error": "指定されたファイルが見つかりません"}, status=404
+            )
+
+        zip_name = f"files-{int(time.time())}.zip"
+        try:
+            temp_dir = Path(tempfile.mkdtemp(prefix="upload-zip-"))
+        except Exception as exc:  # pragma: no cover - temp failure is rare
+            return web.json_response(
+                {"error": f"ZIPの一時ディレクトリ作成に失敗しました: {exc}"},
+                status=500,
+            )
+        zip_path = temp_dir / zip_name
+
+        def _unique_arcname(name: str, used: set[str]) -> str:
+            candidate = Path(name).name or "file"
+            stem = Path(candidate).stem or "file"
+            suffix = Path(candidate).suffix
+            counter = 2
+            while candidate in used:
+                candidate = f"{stem}-{counter}{suffix}"
+                counter += 1
+            used.add(candidate)
+            return candidate
+
+        def build_zip() -> None:
+            used: set[str] = set()
+            compression = zipfile.ZIP_DEFLATED
+            with zipfile.ZipFile(zip_path, "w", compression=compression) as zf:
+                for _, meta, path in files:
+                    if not path.exists():
+                        continue
+                    arcname = _unique_arcname(meta.get("filename") or "file", used)
+                    with contextlib.suppress(FileNotFoundError):
+                        zf.write(path, arcname=arcname)
+
+        try:
+            await asyncio.to_thread(build_zip)
+        except Exception as exc:  # pragma: no cover - unexpected zip error
+            with contextlib.suppress(Exception):
+                zip_path.unlink()
+                temp_dir.rmdir()
+            return web.json_response(
+                {"error": f"ZIPの作成に失敗しました: {exc}"}, status=500
+            )
+
+        response = web.FileResponse(zip_path)
+        response.headers["Content-Type"] = "application/zip"
+        response.headers["Content-Disposition"] = f'attachment; filename="{zip_name}"'
+
+        async def _cleanup() -> None:
+            await asyncio.sleep(60)
+            with contextlib.suppress(Exception):
+                zip_path.unlink()
+            with contextlib.suppress(Exception):
+                temp_dir.rmdir()
+
+        request.app.loop.create_task(_cleanup())
+        return response
+
     async def handle_list(request: web.Request):
         index = load_index()
         client_ip = client_ip_from_request(request)
@@ -500,10 +617,12 @@ def create_uploader_app() -> web.Application:
         return web.json_response({"ok": True})
 
     app.router.add_get("/", handle_root)
+    app.router.add_get("/batch", handle_batch_page)
     app.router.add_post("/api/upload", handle_upload)
     app.router.add_get("/files/{token}", handle_get_file)
     app.router.add_get("/api/files", handle_list)
     app.router.add_get("/api/file/{token}", handle_file_info)
+    app.router.add_post("/api/download/zip", handle_zip_download)
     app.router.add_delete("/api/delete/{token}", handle_delete)
 
     if ASSETS_DIR.exists():
@@ -522,6 +641,13 @@ def create_listing_app() -> web.Application:
                 headers={"Content-Type": "text/html; charset=utf-8"},
             )
         return web.Response(text="login page not found", status=500)
+
+    def serve_batch_page() -> web.StreamResponse:
+        if BATCH_PAGE.exists():
+            return web.FileResponse(
+                BATCH_PAGE, headers={"Content-Type": "text/html; charset=utf-8"}
+            )
+        return web.Response(text="batch page not found", status=404)
 
     refresh_allowed_users()
 
@@ -546,6 +672,9 @@ def create_listing_app() -> web.Application:
         refresh_allowed_users()
         next_path = sanitize_next(request.rel_url.query.get("next"))
         raise login_redirect_response(request, next_path)
+
+    async def handle_batch_page(request: web.Request):
+        return serve_batch_page()
 
     async def handle_login_submit(request: web.Request):
         if not AUTH_ENABLED:
@@ -603,6 +732,7 @@ def create_listing_app() -> web.Application:
         return web.json_response(records)
 
     app.router.add_get("/", handle_root)
+    app.router.add_get("/batch", handle_batch_page)
     app.router.add_get("/login", handle_login_page)
     app.router.add_post("/login", handle_login_submit)
     app.router.add_get("/logout", handle_logout)

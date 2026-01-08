@@ -20,7 +20,13 @@ from config import (
 from file_index import load_index
 from github_client import fetch_readme
 from helpers import format_timestamp, human_readable_size, public_base_url
-from web_server import create_listing_app, create_uploader_app
+from web_server import (
+    create_listing_app,
+    create_uploader_app,
+    load_file_credentials,
+    refresh_allowed_users,
+    save_file_credentials,
+)
 
 GITHUB_URL_PATTERN = re.compile(r"https://github.com/([\w\-]+)/([\w\-]+)(?:/|$)")
 FILE_URL_PATTERN = re.compile(r"(https?://[^\s/]+)/files/([0-9a-fA-F]+)")
@@ -61,20 +67,14 @@ def register_events(bot: commands.Bot) -> None:
                 listing_app = create_listing_app()
                 listing_runner = web.AppRunner(listing_app)
                 await listing_runner.setup()
-                listing_site = web.TCPSite(
-                    listing_runner, HTTP_HOST, HTTP_LISTING_PORT
-                )
+                listing_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LISTING_PORT)
                 await listing_site.start()
                 bot.listing_site = listing_site
                 if HTTP_LOGIN_PORT != HTTP_LISTING_PORT:
-                    login_site = web.TCPSite(
-                        listing_runner, HTTP_HOST, HTTP_LOGIN_PORT
-                    )
+                    login_site = web.TCPSite(listing_runner, HTTP_HOST, HTTP_LOGIN_PORT)
                     await login_site.start()
                     bot.login_site = login_site
-                    print(
-                        f"Login page server started on {HTTP_HOST}:{HTTP_LOGIN_PORT}"
-                    )
+                    print(f"Login page server started on {HTTP_HOST}:{HTTP_LOGIN_PORT}")
                 bot.listing_runner = listing_runner
                 print(f"Listing server started on {HTTP_HOST}:{HTTP_LISTING_PORT}")
         elif not LISTING_SERVER_DISABLED_LOGGED:
@@ -204,6 +204,40 @@ def register_commands(bot: commands.Bot) -> None:
         await interaction.response.send_message(
             f"📤 ファイルアップロードはこちらからどうぞ:\n{url}", ephemeral=False
         )
+
+    @app_commands.checks.has_permissions(administrator=True)
+    @bot.tree.command(
+        name="adduser", description="共有一覧のログインユーザーを追加/更新します"
+    )
+    @app_commands.describe(
+        username="追加または上書きするユーザーID", password="設定するパスワード"
+    )
+    async def adduser(
+        interaction: discord.Interaction, username: str, password: str
+    ) -> None:
+        username = (username or "").strip()
+        password = password or ""
+        if not username or not password:
+            await interaction.response.send_message(
+                "ユーザーIDとパスワードを入力してください。", ephemeral=True
+            )
+            return
+
+        try:
+            current = {user: pwd for user, pwd in load_file_credentials()}
+            existed = username in current
+            current[username] = password
+            save_file_credentials(list(current.items()))
+            refresh_allowed_users()
+            action = "更新" if existed else "追加"
+            await interaction.response.send_message(
+                f"✅ ログインユーザーを{action}しました: `{username}`",
+                ephemeral=True,
+            )
+        except Exception as exc:
+            await interaction.response.send_message(
+                f"ユーザー追加に失敗しました: {exc}", ephemeral=True
+            )
 
 
 async def suppress_original(message: discord.Message) -> None:
