@@ -727,8 +727,6 @@ def create_listing_app() -> web.Application:
             )
 
         records.sort(key=lambda item: item["timestamp"], reverse=True)
-        for record in records:
-            record.pop("timestamp", None)
         return web.json_response(records)
 
     app.router.add_get("/", handle_root)

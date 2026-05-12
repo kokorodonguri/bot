@@ -1,68 +1,46 @@
-## Discord アップローダー Bot
+## ファイル共有 Web アプリ
 
-Discord サーバーからファイルを受け取り、Web UI で配布・管理できるボットです。Slash Command で認証ユーザーを追加し、ブラウザからのアップロード／一覧表示／ダウンロードを一括で提供します。
+ブラウザからファイルをアップロードし、共有リンク・一覧表示・ダウンロードページを提供する aiohttp ベースのWebアプリです。
 
 ### 主な機能
-- Discord でのファイル投稿とメタデータ管理
-- aiohttp ベースのアップローダー UI/API
-- 認証付きの公開ファイル一覧・ログインページ
-- GitHub README 取得やプレビュー生成などのユーティリティ
-
----
+- 複数ファイルのWebアップロード
+- 共有リンク、個別ダウンロードページ、プレビュー表示
+- 認証付きファイル一覧
+- 複数ファイルのまとめページとZIPダウンロード
 
 ## 必要環境
 - Python 3.10 以降
 - pip / venv
-- Discord Bot Token（`token.txt` に保存）
-- （任意）`.env` でのカスタム環境変数
-
----
+- 任意: `.env` でのカスタム環境変数
 
 ## セットアップ
-1. リポジトリを取得
-   ```bash
-   git clone https://github.com/kokorodonguri/bot.git
-   cd bot
-   ```
-2. 仮想環境を作成・有効化
+1. 仮想環境を作成・有効化
    ```bash
    python -m venv venv
    source venv/bin/activate
    ```
-3. 依存パッケージをインストール
+2. 依存パッケージをインストール
    ```bash
    pip install -r requirements.txt
    ```
-4. `token.txt` を作成し、Discord Bot Token を 1 行で保存
-5. 環境変数を `.env` に記述（例は下記「設定」参照）
-6. ファイル一覧にログインが必要な場合は `listing_credentials.json` を用意するか、後述の `/adduser` コマンドで登録
-
----
+3. ファイル一覧にログインが必要な場合は `listing_credentials.json` を用意するか、`LISTING_USERNAME` / `LISTING_PASSWORD` を設定
 
 ## 起動と停止
-```
+```bash
 python bot.py
 ```
 
-起動すると以下がまとめて動作します。
-- Discord Bot（Slash Command, Message ハンドリング）
-- アップローダー UI/API（`HTTP_HOST:HTTP_PORT`、初期値 `0.0.0.0:8000`）
-- 公開ファイル一覧（`HTTP_LISTING_PORT`、初期値 `8004`）
-- ログインページ（`HTTP_LOGIN_PORT`、初期値 `8080`）
+起動すると以下が動作します。
+- アップローダー UI/API: `HTTP_HOST:HTTP_PORT`、初期値 `0.0.0.0:8000`
+- 公開ファイル一覧: `HTTP_LISTING_PORT`、初期値 `8004`
+- ログインページ: `HTTP_LOGIN_PORT`、初期値 `8080`
 
-`web_server.py` などで Web サーバーを別プロセスとして動かす場合は、`.env` で `ENABLE_UPLOAD_SERVER=0` や `ENABLE_LISTING_SERVER=0` を設定するとボット側でのポート待ち受けをスキップできます。
-
-停止する場合はプロセスを Ctrl+C で終了してください。
-
----
+停止する場合は Ctrl+C で終了してください。
 
 ## Web UI と認証
 - `uploads/` に保存されたファイルは `website/` 以下のテンプレートをもとに配信されます。
 - 認証は `listing_credentials.json`（`{"users": [{"username": "...", "password": "..."}]}`）または `LISTING_USERNAME` / `LISTING_PASSWORD` で設定します。
-- Discord から追加する場合は `/adduser <username> <password>` を実行すると `listing_credentials.json` に追記され、即時反映されます。
 - ログイン後は自動更新付きの一覧 (`website/listing.html`) へ遷移し、検索・プレビュー・ダウンロードが可能です。
-
----
 
 ## 設定
 `.env` もしくは環境変数で下記を上書きできます。
@@ -72,7 +50,7 @@ python bot.py
 | `HTTP_HOST` / `HTTP_PORT` | `0.0.0.0` / `8000` | アップローダー UI/API の待ち受け |
 | `HTTP_LISTING_PORT` | `8004` | 公開一覧 UI のポート |
 | `HTTP_LOGIN_PORT` | `8080` | ログインページのポート |
-| `ENABLE_UPLOAD_SERVER` / `ENABLE_LISTING_SERVER` | `1` / `1` | 内蔵のアップローダー/一覧サーバーの起動制御（`0` で無効化） |
+| `ENABLE_UPLOAD_SERVER` / `ENABLE_LISTING_SERVER` | `1` / `1` | アップローダー/一覧サーバーの起動制御（`0` で無効化） |
 | `MAX_UPLOAD_BYTES` | `5GB` | 単一ファイルのアップロード上限 |
 | `MAX_IP_STORAGE_BYTES` | `~80GB` | 同一 IP の累計アップロード上限 (`0` で無効) |
 | `PUBLIC_BASE_URL` | `https://upload.dongurihub.jp` | 一覧で表示する公開 URL |
@@ -92,27 +70,15 @@ LISTING_SESSION_SECRET=change_me
 PUBLIC_BASE_URL=https://upload.example.com
 ```
 
----
-
 ## ファイル構成
-- `bot.py`: Discord Bot と Web サーバーのエントリーポイント
+- `bot.py`: Webサーバーのエントリーポイント
 - `config.py`: ルートディレクトリやポート設定の共通ヘルパー
-- `discord_setup.py`: Slash Command / イベント登録、Web サーバーの起動制御
-- `file_index.py`: `file_index.json` への読み書きとトークン管理
-- `github_client.py`: GitHub README を取得する非同期クライアント
+- `file_index.py`: `file_index.json` への読み書き
 - `helpers.py`: ファイルサイズ変換やテンプレート描画などのユーティリティ
 - `web_server.py`: アップロード API と一覧 UI を提供する aiohttp アプリ
-- `website/`: HTML/CSS/JS テンプレート（`listing.html`, `assets/`, `login/` など）
-- `uploads/`: 受信ファイルの保存先。ボット起動時に自動作成されます。
+- `website/`: HTML/CSS/JS テンプレート
+- `uploads/`: 受信ファイルの保存先。起動時に自動作成されます。
 - `listing_credentials.json`: ファイル一覧用の認証情報
-
----
-
-## Discord コマンド
-- `/adduser <username> <password>`: ログイン可能なユーザーを追加
-- その他の Slash Command / メッセージハンドラは `discord_setup.py` を参照してください。
-
----
 
 ## 補足
 - 依存パッケージを追加したら `requirements.txt` を更新してください。

@@ -1,5 +1,5 @@
 /.venv
-token.txt
+/venv/
 .env
 file_index.json
 /uploads/

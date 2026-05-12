@@ -74,7 +74,7 @@
       headline.className = "audio-preview-headline";
       const icon = document.createElement("span");
       icon.className = "audio-preview-icon";
-      icon.textContent = "🎧";
+      icon.textContent = "A";
       const headlineText = document.createElement("div");
       headlineText.className = "audio-preview-headline-text";
       const label = document.createElement("div");
@@ -128,7 +128,7 @@
       playButton.type = "button";
       playButton.className = "audio-play-button";
       const updatePlayButton = () => {
-        playButton.textContent = audio.paused ? "▶ 再生" : "⏸ 一時停止";
+        playButton.textContent = audio.paused ? "再生" : "一時停止";
       };
       playButton.addEventListener("click", () => {
         if (audio.paused) {
