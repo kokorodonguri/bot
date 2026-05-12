@@ -34,7 +34,6 @@ LISTING_LOGIN_DIR = WEBSITE_DIR / "login"
 LISTING_LOGIN_PAGE = LISTING_LOGIN_DIR / "index.html"
 LISTING_LOGIN_ASSETS_DIR = LISTING_LOGIN_DIR / "assets"
 ASSETS_DIR = WEBSITE_DIR / "assets"
-TOKEN_PATH = ROOT / "token.txt"
 
 HTTP_HOST = os.getenv("HTTP_HOST", "0.0.0.0")
 HTTP_PORT = int(os.getenv("HTTP_PORT", "8000"))

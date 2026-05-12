@@ -169,7 +169,9 @@ function includeByTime(file) {
   if (!range) {
     return true;
   }
-  const uploaded = parseUploadDate(file.uploaded_at);
+  const uploaded = file.timestamp
+    ? new Date(Number(file.timestamp) * 1000)
+    : parseUploadDate(file.uploaded_at);
   if (!uploaded) {
     return true;
   }
@@ -214,10 +216,12 @@ function parseUploadDate(value) {
 
 function sortByDate(list) {
   return [...list].sort((a, b) => {
-    const aDate = parseUploadDate(a.uploaded_at);
-    const bDate = parseUploadDate(b.uploaded_at);
-    const aTime = aDate ? aDate.getTime() : 0;
-    const bTime = bDate ? bDate.getTime() : 0;
+    const aTime = a.timestamp
+      ? Number(a.timestamp) * 1000
+      : parseUploadDate(a.uploaded_at)?.getTime() || 0;
+    const bTime = b.timestamp
+      ? Number(b.timestamp) * 1000
+      : parseUploadDate(b.uploaded_at)?.getTime() || 0;
     return sortDesc ? bTime - aTime : aTime - bTime;
   });
 }
